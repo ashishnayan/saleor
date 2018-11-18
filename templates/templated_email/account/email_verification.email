@@ -22,5 +22,5 @@ Sincerely,
 {% endblock %}
 
 {% block html %}
-{% include 'templated_email/compiled/password_reset.html' %}
+{% include 'templated_email/compiled/email_verification.html' %}
 {% endblock %}
