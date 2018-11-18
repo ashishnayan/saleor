@@ -1,20 +1,22 @@
 from django.conf import settings
 from django.contrib import auth, messages
-from django.contrib.auth import views as django_views
+from django.contrib.auth import views as django_views, get_user_model
 from django.contrib.auth.decorators import login_required
 from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse, reverse_lazy
+from django.utils import timezone
 from django.utils.translation import pgettext, ugettext_lazy as _
 from django.views.decorators.http import require_POST
 
 from ..checkout.utils import find_and_assign_anonymous_cart
 from ..core.utils import get_paginator_items
-from .emails import send_account_delete_confirmation_email
+from .emails import send_account_delete_confirmation_email, send_email_verification_link
 from .forms import (
     ChangePasswordForm, LoginForm, PasswordResetForm, SignupForm,
     get_address_form, logout_on_password_change)
+from .models import EmailVerification
 
 
 @find_and_assign_anonymous_cart()
@@ -33,20 +35,43 @@ def logout(request):
 
 
 def signup(request):
-    form = SignupForm(request.POST or None)
+    user = None
+    if request.method == "POST":
+        email = request.POST.get("email")
+        if email:
+            user = get_user_model().objects.filter(email=email, is_active=False).last()
+    form = SignupForm(request.POST or None, instance=user)
     if form.is_valid():
-        form.save()
-        password = form.cleaned_data.get('password')
-        email = form.cleaned_data.get('email')
-        user = auth.authenticate(
-            request=request, email=email, password=password)
-        if user:
-            auth.login(request, user)
-        messages.success(request, _('User has been created'))
-        redirect_url = request.POST.get('next', settings.LOGIN_REDIRECT_URL)
+        user = form.save()
+        if settings.EMAIL_VERIFICATION_REQUIRED:
+            messages.success(request, _('User has been created. Check your e-mail to verify your e-mail address.'))
+            redirect_url = reverse_lazy("account:login")
+            obj = EmailVerification.objects.create(user=user)
+            send_email_verification_link(obj.token, user.email)
+        else:
+            password = form.cleaned_data.get('password')
+            email = form.cleaned_data.get('email')
+            user = auth.authenticate(
+                request=request, email=email, password=password)
+            if user:
+                auth.login(request, user)
+            messages.success(request, _('User has been created'))
+            redirect_url = request.POST.get('next', settings.LOGIN_REDIRECT_URL)
         return redirect(redirect_url)
     ctx = {'form': form}
     return TemplateResponse(request, 'account/signup.html', ctx)
+
+
+def email_verification(request, token):
+    obj = get_object_or_404(EmailVerification, token=token)
+    if timezone.now() - obj.created_on <= settings.EMAIL_VERIFICATION_LINK_EXPIRYTIME:
+        obj.user.is_active = True
+        obj.user.save()
+        redirect_url = reverse_lazy("account:login")
+    else:
+        messages.error(request, _('Token Expired.'))
+        redirect_url = reverse_lazy("account:signup")
+    return redirect(redirect_url)
 
 
 def password_reset(request):

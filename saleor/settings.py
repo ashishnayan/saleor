@@ -1,4 +1,5 @@
 import ast
+import datetime
 import os.path
 
 import dj_database_url
@@ -103,7 +104,7 @@ EMAIL_HOST_PASSWORD = email_config['EMAIL_HOST_PASSWORD']
 EMAIL_HOST = email_config['EMAIL_HOST']
 EMAIL_PORT = email_config['EMAIL_PORT']
 EMAIL_BACKEND = email_config['EMAIL_BACKEND']
-EMAIL_USE_TLS = email_config['EMAIL_USE_TLS']
+EMAIL_USE_TLS = True  # email_config['EMAIL_USE_TLS']
 EMAIL_USE_SSL = email_config['EMAIL_USE_SSL']
 
 ENABLE_SSL = get_bool_from_env('ENABLE_SSL', False)
@@ -544,3 +545,6 @@ if SENTRY_DSN:
 
 SERIALIZATION_MODULES = {
     'json': 'saleor.core.utils.json_serializer'}
+
+EMAIL_VERIFICATION_REQUIRED = True
+EMAIL_VERIFICATION_LINK_EXPIRYTIME = datetime.timedelta(minutes=15)

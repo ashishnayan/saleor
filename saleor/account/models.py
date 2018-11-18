@@ -75,7 +75,7 @@ class Address(models.Model):
 class UserManager(BaseUserManager):
 
     def create_user(
-            self, email, password=None, is_staff=False, is_active=True,
+            self, email, password=None, is_staff=False, is_active=False,
             **extra_fields):
         """Create a user instance with the given email and password."""
         email = UserManager.normalize_email(email)
@@ -92,7 +92,7 @@ class UserManager(BaseUserManager):
 
     def create_superuser(self, email, password=None, **extra_fields):
         return self.create_user(
-            email, password, is_staff=True, is_superuser=True, **extra_fields)
+            email, password, is_staff=True, is_active=True, is_superuser=True, **extra_fields)
 
     def customers(self):
         return self.get_queryset().filter(
@@ -112,7 +112,7 @@ class User(PermissionsMixin, AbstractBaseUser):
         Address, blank=True, related_name='user_addresses')
     is_staff = models.BooleanField(default=False)
     token = models.UUIDField(default=get_token, editable=False, unique=True)
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=False)
     note = models.TextField(null=True, blank=True)
     date_joined = models.DateTimeField(default=timezone.now, editable=False)
     default_shipping_address = models.ForeignKey(
@@ -150,6 +150,12 @@ class User(PermissionsMixin, AbstractBaseUser):
             return '%s %s (%s)' % (
                 address.first_name, address.last_name, self.email)
         return self.email
+
+
+class EmailVerification(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL)
+    token = models.UUIDField(default=uuid.uuid4, editable=False)
+    created_on = models.DateTimeField(auto_now_add=True)
 
 
 class CustomerNote(models.Model):

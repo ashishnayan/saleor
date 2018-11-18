@@ -35,3 +35,16 @@ def send_account_delete_confirmation_email(token, recipient_email):
         from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[recipient_email],
         context=ctx)
+
+
+@shared_task
+def send_email_verification_link(token, recipient_email):
+    email_verification_url = build_absolute_uri(
+        reverse('account:email-verification', kwargs={'token': token}))
+    ctx = get_email_base_context()
+    ctx['email_verification_url'] = email_verification_url
+    send_templated_mail(
+        template_name='account/email_verification',
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[recipient_email],
+        context=ctx)

@@ -1,0 +1,26 @@
+{% load i18n %}
+
+{% block subject %}
+  Please verify your email to activate Sunrich Rice Account
+{% endblock %}
+
+{% block plain %}
+{% blocktrans context "Email Verification" %}
+Hi!
+
+Welcome to Sunrich Rice! Please click on the below link to verify your email address. Once verified you can access your Rice Account.
+{% endblocktrans %}
+
+{{ email_verification_url }}
+
+This is an automatically generated email, please do not reply.
+
+{% blocktrans context "Email Verification" %}
+Sincerely,
+{{ site_name }}
+{% endblocktrans %}
+{% endblock %}
+
+{% block html %}
+{% include 'templated_email/compiled/password_reset.html' %}
+{% endblock %}

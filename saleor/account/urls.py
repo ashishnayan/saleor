@@ -9,6 +9,7 @@ urlpatterns = [
     url(r'^login/$', views.login, name='login'),
     url(r'^logout/$', views.logout, name='logout'),
     url(r'^signup/$', views.signup, name='signup'),
+    url(r'^email/verify/(?P<token>[0-9A-Za-z_\-]+)/$', views.email_verification, name='email-verification'),
     url(r'^password/reset/$', views.password_reset,
         name='reset-password'),
     url(r'^password/reset/done/$', django_views.PasswordResetDoneView.as_view(
