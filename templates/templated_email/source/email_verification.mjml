@@ -1,0 +1,29 @@
+<mjml>
+  <mj-head>
+    <mj-include path="./shared/styles.mjml" />
+  </mj-head>
+  <mj-body>
+    <mj-raw>
+      {% load i18n %}
+    </mj-raw>
+    <mj-include path="./shared/header.mjml" />
+    <mj-section>
+      <mj-column>
+        <mj-text font-size="16px">
+          {% trans "Hi!" context "Email Verification e-mail text" %}
+        </mj-text>
+        <mj-text>
+          {% blocktrans trimmed context "Email Verification e-mail text" %}
+            Welcome to Sunrich Rice! Please click on the below link to verify your email address. Once verified you can access your Rice Account.
+          {% endblocktrans %}
+        </mj-text>
+        <mj-text>
+          <a href="{{ email_verification_url }}">
+            {{ email_verification_url }}
+          </a>
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-include path="./shared/footer.mjml" />
+  </mj-body>
+</mjml>
