@@ -109,6 +109,9 @@ def start_payment(request, order, variant):
     variant_choices = settings.CHECKOUT_PAYMENT_CHOICES
     if variant not in [code for code, dummy_name in variant_choices]:
         raise Http404('%r is not a valid payment variant' % (variant,))
+    if variant == "default":
+        url = reverse('order:checkout-success', kwargs={'token': order.token})
+        return redirect(url)
     with transaction.atomic():
         payment, dummy_created = Payment.objects.get_or_create(
             variant=variant, status=PaymentStatus.WAITING, order=order,

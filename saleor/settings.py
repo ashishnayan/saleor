@@ -354,7 +354,7 @@ if not CACHES['default']['BACKEND'].endswith('LocMemCache'):
     SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 
 CHECKOUT_PAYMENT_CHOICES = [
-    ('default', 'Dummy provider')]
+    ('default', 'Cash on Delivery')]
 
 MESSAGE_TAGS = {
     messages.ERROR: 'danger'}
