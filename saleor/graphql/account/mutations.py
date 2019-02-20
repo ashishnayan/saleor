@@ -54,6 +54,7 @@ class CustomerRegister(ModelMutation):
     def save(cls, info, user, cleaned_input):
         password = cleaned_input['password']
         user.set_password(password)
+        user.is_active = True
         user.save()
 
 

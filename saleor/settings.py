@@ -44,7 +44,9 @@ MANAGERS = ADMINS
 
 INTERNAL_IPS = get_list(os.environ.get('INTERNAL_IPS', '127.0.0.1'))
 
-# Some cloud providers (Heroku) export REDIS_URL variable instead of CACHE_URL
+CORS_ORIGIN_ALLOW_ALL = True
+# Some cloud providers like Heroku export REDIS_URL variable instead of CACHE_URL
+
 REDIS_URL = os.environ.get('REDIS_URL')
 if REDIS_URL:
     CACHE_URL = os.environ.setdefault('CACHE_URL', REDIS_URL)
@@ -175,6 +177,7 @@ TEMPLATES = [{
 SECRET_KEY = os.environ.get('SECRET_KEY')
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -244,7 +247,8 @@ INSTALLED_APPS = [
     'django_celery_results',
     'impersonate',
     'phonenumber_field',
-    'captcha']
+    'captcha',
+    'corsheaders']
 
 if DEBUG:
     MIDDLEWARE.append(
@@ -275,7 +279,7 @@ ENABLE_SILK = get_bool_from_env('ENABLE_SILK', False)
 if ENABLE_SILK:
     MIDDLEWARE.insert(0, 'silk.middleware.SilkyMiddleware')
     INSTALLED_APPS.append('silk')
-
+# LOGGING_FOLDER = "/var/log/saleor"
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -300,7 +304,8 @@ LOGGING = {
         'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
-            'formatter': 'verbose'}},
+            'formatter': 'verbose'},
+    },
     'loggers': {
         'django': {
             'handlers': ['console', 'mail_admins'],
@@ -379,9 +384,9 @@ bootstrap4 = {
 
 TEST_RUNNER = 'tests.runner.PytestTestRunner'
 
-ALLOWED_HOSTS = get_list(
-    os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1'))
 ALLOWED_GRAPHQL_ORIGINS = os.environ.get('ALLOWED_GRAPHQL_ORIGINS', '*')
+ALLOWED_HOSTS = get_list(
+    os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,www.sunrichrice.com'))
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
