@@ -1,6 +1,9 @@
+from unittest.mock import patch
+
 import graphene
-from django.conf import settings
 from django_countries import countries
+from django_prices_vatlayer.models import VAT
+
 from saleor.core.permissions import MODELS_PERMISSIONS
 from saleor.graphql.core.utils import str_to_enum
 from saleor.site import AuthenticationBackends
@@ -45,7 +48,78 @@ def test_query_countries(user_api_client):
     assert len(data['countries']) == len(countries)
 
 
-def test_query_currencies(user_api_client):
+def test_query_countries_with_tax(user_api_client, vatlayer, tax_rates):
+    query = """
+    query {
+        shop {
+            countries {
+                code
+                vat {
+                    standardRate
+                    reducedRates {
+                        rate
+                        rateType
+                    }
+                }
+            }
+        }
+    }
+    """
+    response = user_api_client.post_graphql(query)
+    content = get_graphql_content(response)
+    data = content['data']['shop']['countries']
+    vat = VAT.objects.first()
+    country = next(
+        country for country in data if country['code'] == vat.country_code)
+    assert country['vat']['standardRate'] == tax_rates['standard_rate']
+    rates = {
+        rate['rateType']: rate['rate']
+        for rate in country['vat']['reducedRates']}
+    reduced_rates = {
+        str_to_enum(tax_rate): tax_rates['reduced_rates'][tax_rate]
+        for tax_rate in tax_rates['reduced_rates']}
+    assert rates == reduced_rates
+
+
+def test_query_default_country(user_api_client, settings):
+    query = """
+    query {
+        shop {
+            defaultCountry {
+                country
+            }
+        }
+    }
+    """
+    response = user_api_client.post_graphql(query)
+    content = get_graphql_content(response)
+    data = content['data']['shop']['defaultCountry']
+    assert data['country'] == settings.DEFAULT_COUNTRY
+
+
+def test_query_default_country_with_tax(
+        user_api_client, settings, vatlayer, tax_rates):
+    settings.DEFAULT_COUNTRY = 'PL'
+    query = """
+    query {
+        shop {
+            defaultCountry {
+                code
+                vat {
+                    standardRate
+                }
+            }
+        }
+    }
+    """
+    response = user_api_client.post_graphql(query)
+    content = get_graphql_content(response)
+    data = content['data']['shop']['defaultCountry']
+    assert data['code'] == settings.DEFAULT_COUNTRY
+    assert data['vat']['standardRate'] == tax_rates['standard_rate']
+
+
+def test_query_currencies(user_api_client, settings):
     query = """
     query {
         shop {
@@ -77,7 +151,7 @@ def test_query_name(user_api_client, site_settings):
     assert data['name'] == site_settings.site.name
 
 
-def test_query_domain(user_api_client, site_settings):
+def test_query_domain(user_api_client, site_settings, settings):
     query = """
     query {
         shop {
@@ -159,6 +233,20 @@ def test_query_navigation(user_api_client, site_settings):
     assert navigation_data['secondary']['name'] == site_settings.bottom_menu.name
 
 
+def test_query_charge_taxes_on_shipping(api_client, site_settings):
+    query = """
+    query {
+        shop {
+            chargeTaxesOnShipping
+        }
+    }"""
+    response = api_client.post_graphql(query)
+    content = get_graphql_content(response)
+    data = content['data']['shop']
+    charge_taxes_on_shipping = site_settings.charge_taxes_on_shipping
+    assert data['chargeTaxesOnShipping'] == charge_taxes_on_shipping
+
+
 def test_shop_settings_mutation(
         staff_api_client, site_settings, permission_manage_settings):
     query = """
@@ -166,23 +254,33 @@ def test_shop_settings_mutation(
             shopSettingsUpdate(input: $input) {
                 shop {
                     headerText,
-                    includeTaxesInPrices
+                    includeTaxesInPrices,
+                    chargeTaxesOnShipping
+                }
+                errors {
+                    field,
+                    message
                 }
             }
         }
     """
+    charge_taxes_on_shipping = site_settings.charge_taxes_on_shipping
+    new_charge_taxes_on_shipping = not charge_taxes_on_shipping
     variables = {
         'input': {
             'includeTaxesInPrices': False,
-            'headerText': 'Lorem ipsum'}}
+            'headerText': 'Lorem ipsum',
+            'chargeTaxesOnShipping': new_charge_taxes_on_shipping}}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_settings])
     content = get_graphql_content(response)
     data = content['data']['shopSettingsUpdate']['shop']
     assert data['includeTaxesInPrices'] == False
     assert data['headerText'] == 'Lorem ipsum'
+    assert data['chargeTaxesOnShipping'] == new_charge_taxes_on_shipping
     site_settings.refresh_from_db()
     assert not site_settings.include_taxes_in_prices
+    assert site_settings.charge_taxes_on_shipping == new_charge_taxes_on_shipping
 
 
 def test_shop_domain_update(staff_api_client, permission_manage_settings):
@@ -240,6 +338,32 @@ def test_homepage_collection_update(
     assert data['homepageCollection']['name'] == collection.name
     site = Site.objects.get_current()
     assert site.settings.homepage_collection == collection
+
+
+def test_homepage_collection_update_set_null(
+        staff_api_client, collection, site_settings,
+        permission_manage_settings):
+    query = """
+        mutation homepageCollectionUpdate($collection: ID) {
+            homepageCollectionUpdate(collection: $collection) {
+                shop {
+                    homepageCollection {
+                        id
+                    }
+                }
+            }
+        }
+    """
+    site_settings.homepage_collection = collection
+    site_settings.save()
+    variables = {'collection': None}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_settings])
+    content = get_graphql_content(response)
+    data = content['data']['homepageCollectionUpdate']['shop']
+    assert data['homepageCollection'] is None
+    site_settings.refresh_from_db()
+    assert site_settings.homepage_collection is None
 
 
 def test_query_default_country(user_api_client, settings):
@@ -352,3 +476,39 @@ def test_mutation_authorization_key_delete(
         query, variables, permissions=[permission_manage_settings])
     content = get_graphql_content(response)
     assert content['data']['authorizationKeyDelete']['authorizationKey']
+
+
+MUTATION_SHOP_FETCH_TAX_RATES = """
+    mutation FetchTaxRates {
+        shopFetchTaxRates {
+            errors {
+                field
+                message
+            }
+        }
+    }
+    """
+
+
+def test_shop_fetch_tax_rates_no_api_access_key(
+        staff_api_client, permission_manage_settings):
+    staff_api_client.user.user_permissions.add(permission_manage_settings)
+    response = staff_api_client.post_graphql(
+        MUTATION_SHOP_FETCH_TAX_RATES)
+    content = get_graphql_content(response)
+    data = content['data']['shopFetchTaxRates']
+    error_message =('Could not fetch tax rates. '
+        'Make sure you have supplied a valid API Access Key.')
+    assert data['errors'][0]['message'] == error_message
+
+
+@patch('saleor.graphql.shop.mutations.call_command')
+def test_shop_fetch_tax_rates(
+        mock_call_command, staff_api_client, permission_manage_settings,
+        settings):
+    settings.VATLAYER_ACCESS_KEY = 'KEY'
+    staff_api_client.user.user_permissions.add(permission_manage_settings)
+    response = staff_api_client.post_graphql(
+        MUTATION_SHOP_FETCH_TAX_RATES)
+    get_graphql_content(response)
+    mock_call_command.assert_called_once_with('get_vat_rates')

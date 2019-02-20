@@ -1,3 +1,4 @@
+import { Omit } from "@material-ui/core";
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
@@ -9,15 +10,14 @@ import { countries, order as orderFixture } from "../../../orders/fixtures";
 import {
   FulfillmentStatus,
   OrderStatus,
-  PaymentStatusEnum
+  PaymentChargeStatusEnum
 } from "../../../types/globalTypes";
 import Decorator from "../../Decorator";
 
 const order = orderFixture(placeholderImage);
 
-const props: OrderDetailsPageProps = {
+const props: Omit<OrderDetailsPageProps, "classes"> = {
   countries,
-  errors: [],
   onBack: () => undefined,
   onBillingAddressEdit: undefined,
   onFulfillmentCancel: () => undefined,
@@ -28,7 +28,7 @@ const props: OrderDetailsPageProps = {
   onPaymentCapture: undefined,
   onPaymentPaid: undefined,
   onPaymentRefund: undefined,
-  onPaymentRelease: undefined,
+  onPaymentVoid: undefined,
   onProductClick: undefined,
   onShippingAddressEdit: undefined,
   order
@@ -43,7 +43,7 @@ storiesOf("Views / Orders / Order details", module)
       {...props}
       order={{
         ...props.order,
-        paymentStatus: PaymentStatusEnum.PREAUTH
+        paymentStatus: PaymentChargeStatusEnum.NOT_CHARGED
       }}
     />
   ))
@@ -52,7 +52,7 @@ storiesOf("Views / Orders / Order details", module)
       {...props}
       order={{
         ...props.order,
-        paymentStatus: PaymentStatusEnum.ERROR
+        paymentStatus: PaymentChargeStatusEnum.NOT_CHARGED
       }}
     />
   ))
@@ -61,7 +61,7 @@ storiesOf("Views / Orders / Order details", module)
       {...props}
       order={{
         ...props.order,
-        paymentStatus: PaymentStatusEnum.CONFIRMED
+        paymentStatus: PaymentChargeStatusEnum.CHARGED
       }}
     />
   ))
@@ -79,7 +79,7 @@ storiesOf("Views / Orders / Order details", module)
       {...props}
       order={{
         ...props.order,
-        paymentStatus: PaymentStatusEnum.REFUNDED
+        paymentStatus: PaymentChargeStatusEnum.FULLY_REFUNDED
       }}
     />
   ))
@@ -88,7 +88,7 @@ storiesOf("Views / Orders / Order details", module)
       {...props}
       order={{
         ...props.order,
-        paymentStatus: PaymentStatusEnum.REJECTED
+        paymentStatus: PaymentChargeStatusEnum.NOT_CHARGED
       }}
     />
   ))
@@ -138,6 +138,15 @@ storiesOf("Views / Orders / Order details", module)
       order={{
         ...props.order,
         shippingAddress: null
+      }}
+    />
+  ))
+  .add("no customer note", () => (
+    <OrderDetailsPage
+      {...props}
+      order={{
+        ...props.order,
+        customerNote: ""
       }}
     />
   ));

@@ -1,13 +1,10 @@
 import gql from "graphql-tag";
-import { Query, QueryProps } from "react-apollo";
 
+import { TypedQuery } from "../queries";
 import { PageDetails, PageDetailsVariables } from "./types/PageDetails";
 import { PageList, PageListVariables } from "./types/PageList";
 
-export const TypedPageListQuery = Query as React.ComponentType<
-  QueryProps<PageList, PageListVariables>
->;
-export const pageListQuery = gql`
+const pageListQuery = gql`
   query PageList($first: Int, $after: String, $last: Int, $before: String) {
     pages(before: $before, after: $after, first: $first, last: $last) {
       edges {
@@ -16,7 +13,7 @@ export const pageListQuery = gql`
           id
           slug
           title
-          isVisible
+          isPublished
         }
       }
       pageInfo {
@@ -28,11 +25,11 @@ export const pageListQuery = gql`
     }
   }
 `;
+export const TypedPageListQuery = TypedQuery<PageList, PageListVariables>(
+  pageListQuery
+);
 
-export const TypedPageDetailsQuery = Query as React.ComponentType<
-  QueryProps<PageDetails, PageDetailsVariables>
->;
-export const pageDetailsQuery = gql`
+const pageDetailsQuery = gql`
   query PageDetails($id: ID!) {
     page(id: $id) {
       id
@@ -40,8 +37,12 @@ export const pageDetailsQuery = gql`
       title
       content
       created
-      isVisible
-      availableOn
+      isPublished
+      publicationDate
     }
   }
 `;
+export const TypedPageDetailsQuery = TypedQuery<
+  PageDetails,
+  PageDetailsVariables
+>(pageDetailsQuery);

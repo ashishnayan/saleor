@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { configure } from "@storybook/react";
+configure = require("@storybook/react").configure;
 
 function loadStories() {
   // Components
@@ -7,9 +7,11 @@ function loadStories() {
   require("./stories/components/AddressEdit");
   require("./stories/components/AddressFormatter");
   require("./stories/components/CardMenu");
-  require("./stories/components/DateFormatter");
+  require("./stories/components/Date");
+  require("./stories/components/DateTime");
   require("./stories/components/EditableTableCell");
   require("./stories/components/ErrorMessageCard");
+  require("./stories/components/ErrorPage");
   require("./stories/components/ExternalLink");
   require("./stories/components/Money");
   require("./stories/components/MultiAutocompleteSelectField");
@@ -33,12 +35,13 @@ function loadStories() {
   require("./stories/auth/LoginLoading");
 
   // Categories
-  require("./stories/categories/CategoryDeleteDialog");
-  require("./stories/categories/CategoryDetailsPage");
-  require("./stories/categories/CategoryEditPage");
   require("./stories/categories/CategoryProducts");
+  require("./stories/categories/CategoryCreatePage");
+  require("./stories/categories/CategoryUpdatePage");
+  require("./stories/categories/CategoryListPage");
 
   // Collections
+  require("./stories/collections/CollectionCreatePage");
   require("./stories/collections/CollectionDetailsPage");
   require("./stories/collections/CollectionListPage");
 
@@ -46,13 +49,25 @@ function loadStories() {
   require("./stories/configuration/ConfigurationPage");
 
   // Customers
+  require("./stories/customers/CustomerCreatePage");
   require("./stories/customers/CustomerDetailsPage");
-  require("./stories/customers/CustomerEditPage");
   require("./stories/customers/CustomerListPage");
 
+  // Discounts
+  require("./stories/discounts/DiscountCountrySelectDialog");
+  require("./stories/discounts/SaleCreatePage");
+  require("./stories/discounts/SaleDetailsPage");
+  require("./stories/discounts/SaleListPage");
+  require("./stories/discounts/VoucherCreatePage");
+  require("./stories/discounts/VoucherDetailsPage");
+  require("./stories/discounts/VoucherListPage");
+
+  // Homepage
+  require("./stories/home/HomePage");
+
   // Staff
-  require("./stories/staff/StaffListPage")
-  require("./stories/staff/StaffDetailsPage")
+  require("./stories/staff/StaffListPage");
+  require("./stories/staff/StaffDetailsPage");
 
   // Pages
   require("./stories/pages/PageContent");
@@ -67,6 +82,7 @@ function loadStories() {
   require("./stories/products/ProductListCard");
   require("./stories/products/ProductUpdatePage");
   require("./stories/products/ProductVariantCreatePage");
+  require("./stories/products/ProductVariantImageSelectDialog");
   require("./stories/products/ProductVariantPage");
 
   // Orders
@@ -75,20 +91,19 @@ function loadStories() {
   require("./stories/orders/OrderCustomer");
   require("./stories/orders/OrderCustomerEditDialog");
   require("./stories/orders/OrderDetailsPage");
+  require("./stories/orders/OrderDraftCancelDialog");
+  require("./stories/orders/OrderDraftFinalizeDialog");
   require("./stories/orders/OrderDraftPage");
   require("./stories/orders/OrderFulfillmentCancelDialog");
   require("./stories/orders/OrderFulfillmentDialog");
   require("./stories/orders/OrderFulfillmentTrackingDialog");
   require("./stories/orders/OrderHistory");
   require("./stories/orders/OrderListPage");
+  require("./stories/orders/OrderMarkAsPaidDialog");
   require("./stories/orders/OrderPaymentDialog");
-  require("./stories/orders/OrderPaymentReleaseDialog");
+  require("./stories/orders/OrderPaymentVoidDialog");
   require("./stories/orders/OrderProductAddDialog");
   require("./stories/orders/OrderShippingMethodEditDialog");
-
-  // Vouchers
-  require("./stories/vouchers/VoucherDetailsPage");
-  require("./stories/vouchers/VoucherListPage");
 
   // Product types
   require("./stories/productTypes/ProductTypeAttributeEditDialog");
@@ -99,6 +114,10 @@ function loadStories() {
   // Site settings
   require("./stories/siteSettings/SiteSettingsKeyDialog");
   require("./stories/siteSettings/SiteSettingsPage");
+  
+  // Taxes
+  require("./stories/taxes/CountryListPage");
+  require("./stories/taxes/CountryTaxesPage");
 }
 
 configure(loadStories, module);

@@ -1,9 +1,11 @@
 import graphene
+from django.conf import settings
+from django.core.management import call_command
 from graphql_jwt.decorators import permission_required
 
 from ...site import models as site_models
+from ..core.enums import WeightUnitsEnum
 from ..core.mutations import BaseMutation
-from ..core.types.common import WeightUnitsEnum
 from ..product.types import Collection
 from .types import AuthorizationKey, AuthorizationKeyType, Shop
 
@@ -15,6 +17,8 @@ class ShopSettingsInput(graphene.InputObjectType):
         description='Include taxes in prices')
     display_gross_prices = graphene.Boolean(
         description='Display prices with tax in store')
+    charge_taxes_on_shipping = graphene.Boolean(
+        description='Charge taxes on shipping')
     track_inventory_by_default = graphene.Boolean(
         description='Enable inventory tracking')
     default_weight_unit = WeightUnitsEnum(description='Default weight unit')
@@ -81,6 +85,25 @@ class ShopDomainUpdate(BaseMutation):
         return ShopDomainUpdate(shop=Shop(), errors=errors)
 
 
+class ShopFetchTaxRates(BaseMutation):
+    shop = graphene.Field(Shop, description='Updated Shop')
+
+    class Meta:
+        description = 'Fetch tax rates'
+
+    @classmethod
+    @permission_required('site.manage_settings')
+    def mutate(cls, root, info):
+        errors = []
+        if settings.VATLAYER_ACCESS_KEY:
+            call_command('get_vat_rates')
+        else:
+            cls.add_error(
+                errors, None, 'Could not fetch tax rates. '
+                'Make sure you have supplied a valid API Access Key.')
+        return ShopFetchTaxRates(shop=Shop(), errors=errors)
+
+
 class HomepageCollectionUpdate(BaseMutation):
     shop = graphene.Field(Shop, description='Updated Shop')
 
@@ -93,10 +116,12 @@ class HomepageCollectionUpdate(BaseMutation):
 
     @classmethod
     @permission_required('site.manage_settings')
-    def mutate(cls, root, info, collection):
+    def mutate(cls, root, info, collection=None):
         errors = []
-        new_collection = cls.get_node_or_error(
-            info, collection, errors, 'collection', Collection)
+        new_collection = None
+        if collection:
+            new_collection = cls.get_node_or_error(
+                info, collection, errors, 'collection', Collection)
         if errors:
             return HomepageCollectionUpdate(errors=errors)
         site_settings = info.context.site.settings

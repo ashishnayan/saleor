@@ -20,6 +20,10 @@ import {
   ProductImageUpdateVariables
 } from "./types/ProductImageUpdate";
 import { ProductUpdate, ProductUpdateVariables } from "./types/ProductUpdate";
+import {
+  SimpleProductUpdate,
+  SimpleProductUpdateVariables
+} from "./types/SimpleProductUpdate";
 import { VariantCreate, VariantCreateVariables } from "./types/VariantCreate";
 import { VariantDelete, VariantDeleteVariables } from "./types/VariantDelete";
 import {
@@ -81,14 +85,10 @@ export const productImagesReorder = gql`
       product {
         id
         images {
-          edges {
-            node {
-              id
-              alt
-              sortOrder
-              url
-            }
-          }
+          id
+          alt
+          sortOrder
+          url
         }
       }
     }
@@ -104,7 +104,7 @@ export const productUpdateMutation = gql`
   mutation ProductUpdate(
     $id: ID!
     $attributes: [AttributeValueInput]
-    $availableOn: Date
+    $publicationDate: Date
     $category: ID
     $chargeTaxes: Boolean!
     $collections: [ID]
@@ -117,7 +117,7 @@ export const productUpdateMutation = gql`
       id: $id
       input: {
         attributes: $attributes
-        availableOn: $availableOn
+        publicationDate: $publicationDate
         category: $category
         chargeTaxes: $chargeTaxes
         collections: $collections
@@ -142,11 +142,66 @@ export const TypedProductUpdateMutation = TypedMutation<
   ProductUpdateVariables
 >(productUpdateMutation);
 
+export const simpleProductUpdateMutation = gql`
+  ${fragmentProduct}
+  ${fragmentVariant}
+  mutation SimpleProductUpdate(
+    $id: ID!
+    $attributes: [AttributeValueInput]
+    $publicationDate: Date
+    $category: ID
+    $chargeTaxes: Boolean!
+    $collections: [ID]
+    $description: String
+    $isPublished: Boolean!
+    $name: String
+    $price: Decimal
+    $productVariantId: ID!
+    $productVariantInput: ProductVariantInput!
+  ) {
+    productUpdate(
+      id: $id
+      input: {
+        attributes: $attributes
+        publicationDate: $publicationDate
+        category: $category
+        chargeTaxes: $chargeTaxes
+        collections: $collections
+        description: $description
+        isPublished: $isPublished
+        name: $name
+        price: $price
+      }
+    ) {
+      errors {
+        field
+        message
+      }
+      product {
+        ...Product
+      }
+    }
+    productVariantUpdate(id: $productVariantId, input: $productVariantInput) {
+      errors {
+        field
+        message
+      }
+      productVariant {
+        ...ProductVariant
+      }
+    }
+  }
+`;
+export const TypedSimpleProductUpdateMutation = TypedMutation<
+  SimpleProductUpdate,
+  SimpleProductUpdateVariables
+>(simpleProductUpdateMutation);
+
 export const productCreateMutation = gql`
   ${fragmentProduct}
   mutation ProductCreate(
     $attributes: [AttributeValueInput]
-    $availableOn: Date
+    $publicationDate: Date
     $category: ID!
     $chargeTaxes: Boolean!
     $collections: [ID]
@@ -159,7 +214,7 @@ export const productCreateMutation = gql`
     productCreate(
       input: {
         attributes: $attributes
-        availableOn: $availableOn
+        publicationDate: $publicationDate
         category: $category
         chargeTaxes: $chargeTaxes
         collections: $collections
@@ -283,11 +338,7 @@ export const productImageDeleteMutation = gql`
       product {
         id
         images {
-          edges {
-            node {
-              id
-            }
-          }
+          id
         }
       }
     }

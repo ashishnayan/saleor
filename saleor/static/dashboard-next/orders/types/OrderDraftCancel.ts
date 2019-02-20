@@ -1,11 +1,17 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
-import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentStatusEnum, OrderStatus } from "./../../types/globalTypes";
+import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentChargeStatusEnum, OrderStatus, OrderAction } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL mutation operation: OrderDraftCancel
 // ====================================================
+
+export interface OrderDraftCancel_draftOrderDelete_errors {
+  __typename: "Error";
+  field: string | null;
+  message: string | null;
+}
 
 export interface OrderDraftCancel_draftOrderDelete_order_billingAddress_country {
   __typename: "CountryDisplay";
@@ -47,56 +53,47 @@ export interface OrderDraftCancel_draftOrderDelete_order_events {
   user: OrderDraftCancel_draftOrderDelete_order_events_user | null;
 }
 
-export interface OrderDraftCancel_draftOrderDelete_order_fulfillments_lines_edges_node_orderLine_unitPrice_gross {
+export interface OrderDraftCancel_draftOrderDelete_order_fulfillments_lines_orderLine_unitPrice_gross {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderDraftCancel_draftOrderDelete_order_fulfillments_lines_edges_node_orderLine_unitPrice_net {
+export interface OrderDraftCancel_draftOrderDelete_order_fulfillments_lines_orderLine_unitPrice_net {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderDraftCancel_draftOrderDelete_order_fulfillments_lines_edges_node_orderLine_unitPrice {
+export interface OrderDraftCancel_draftOrderDelete_order_fulfillments_lines_orderLine_unitPrice {
   __typename: "TaxedMoney";
-  gross: OrderDraftCancel_draftOrderDelete_order_fulfillments_lines_edges_node_orderLine_unitPrice_gross;
-  net: OrderDraftCancel_draftOrderDelete_order_fulfillments_lines_edges_node_orderLine_unitPrice_net;
+  gross: OrderDraftCancel_draftOrderDelete_order_fulfillments_lines_orderLine_unitPrice_gross;
+  net: OrderDraftCancel_draftOrderDelete_order_fulfillments_lines_orderLine_unitPrice_net;
 }
 
-export interface OrderDraftCancel_draftOrderDelete_order_fulfillments_lines_edges_node_orderLine {
+export interface OrderDraftCancel_draftOrderDelete_order_fulfillments_lines_orderLine {
   __typename: "OrderLine";
   id: string;
+  isShippingRequired: boolean;
   productName: string;
   productSku: string;
   quantity: number;
   quantityFulfilled: number;
-  unitPrice: OrderDraftCancel_draftOrderDelete_order_fulfillments_lines_edges_node_orderLine_unitPrice | null;
+  unitPrice: OrderDraftCancel_draftOrderDelete_order_fulfillments_lines_orderLine_unitPrice | null;
   thumbnailUrl: string | null;
 }
 
-export interface OrderDraftCancel_draftOrderDelete_order_fulfillments_lines_edges_node {
+export interface OrderDraftCancel_draftOrderDelete_order_fulfillments_lines {
   __typename: "FulfillmentLine";
   id: string;
   quantity: number;
-  orderLine: OrderDraftCancel_draftOrderDelete_order_fulfillments_lines_edges_node_orderLine;
-}
-
-export interface OrderDraftCancel_draftOrderDelete_order_fulfillments_lines_edges {
-  __typename: "FulfillmentLineCountableEdge";
-  node: OrderDraftCancel_draftOrderDelete_order_fulfillments_lines_edges_node;
-}
-
-export interface OrderDraftCancel_draftOrderDelete_order_fulfillments_lines {
-  __typename: "FulfillmentLineCountableConnection";
-  edges: OrderDraftCancel_draftOrderDelete_order_fulfillments_lines_edges[];
+  orderLine: OrderDraftCancel_draftOrderDelete_order_fulfillments_lines_orderLine | null;
 }
 
 export interface OrderDraftCancel_draftOrderDelete_order_fulfillments {
   __typename: "Fulfillment";
   id: string;
-  lines: OrderDraftCancel_draftOrderDelete_order_fulfillments_lines | null;
+  lines: (OrderDraftCancel_draftOrderDelete_order_fulfillments_lines | null)[] | null;
   fulfillmentOrder: number;
   status: FulfillmentStatus;
   trackingNumber: string;
@@ -123,6 +120,7 @@ export interface OrderDraftCancel_draftOrderDelete_order_lines_unitPrice {
 export interface OrderDraftCancel_draftOrderDelete_order_lines {
   __typename: "OrderLine";
   id: string;
+  isShippingRequired: boolean;
   productName: string;
   productSku: string;
   quantity: number;
@@ -233,12 +231,14 @@ export interface OrderDraftCancel_draftOrderDelete_order {
   __typename: "Order";
   id: string;
   billingAddress: OrderDraftCancel_draftOrderDelete_order_billingAddress | null;
+  canFinalize: boolean;
   created: any;
+  customerNote: string;
   events: (OrderDraftCancel_draftOrderDelete_order_events | null)[] | null;
   fulfillments: (OrderDraftCancel_draftOrderDelete_order_fulfillments | null)[];
   lines: (OrderDraftCancel_draftOrderDelete_order_lines | null)[];
   number: string | null;
-  paymentStatus: PaymentStatusEnum | null;
+  paymentStatus: PaymentChargeStatusEnum | null;
   shippingAddress: OrderDraftCancel_draftOrderDelete_order_shippingAddress | null;
   shippingMethod: OrderDraftCancel_draftOrderDelete_order_shippingMethod | null;
   shippingMethodName: string | null;
@@ -246,6 +246,7 @@ export interface OrderDraftCancel_draftOrderDelete_order {
   status: OrderStatus;
   subtotal: OrderDraftCancel_draftOrderDelete_order_subtotal | null;
   total: OrderDraftCancel_draftOrderDelete_order_total | null;
+  actions: (OrderAction | null)[];
   totalAuthorized: OrderDraftCancel_draftOrderDelete_order_totalAuthorized | null;
   totalCaptured: OrderDraftCancel_draftOrderDelete_order_totalCaptured | null;
   user: OrderDraftCancel_draftOrderDelete_order_user | null;
@@ -255,6 +256,7 @@ export interface OrderDraftCancel_draftOrderDelete_order {
 
 export interface OrderDraftCancel_draftOrderDelete {
   __typename: "DraftOrderDelete";
+  errors: OrderDraftCancel_draftOrderDelete_errors[] | null;
   order: OrderDraftCancel_draftOrderDelete_order | null;
 }
 

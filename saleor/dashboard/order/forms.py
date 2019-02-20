@@ -3,8 +3,6 @@ from django.conf import settings
 from django.core.validators import MinValueValidator
 from django.urls import reverse, reverse_lazy
 from django.utils.translation import npgettext_lazy, pgettext_lazy
-from django_prices.forms import MoneyField
-from payments import PaymentError, PaymentStatus
 
 from ...account.i18n import (
     AddressForm as StorefrontAddressForm, PossiblePhoneNumberFormField)
@@ -14,12 +12,15 @@ from ...core.exceptions import InsufficientStock
 from ...core.utils.taxes import ZERO_TAXED_MONEY
 from ...discount.models import Voucher
 from ...discount.utils import decrease_voucher_usage, increase_voucher_usage
-from ...order import CustomPaymentChoices, OrderStatus
-from ...order.models import (
-    Fulfillment, FulfillmentLine, Order, OrderLine, Payment)
+from ...order import OrderStatus
+from ...order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ...order.utils import (
     add_variant_to_order, cancel_fulfillment, cancel_order,
     change_order_line_quantity, recalculate_order)
+from ...payment import ChargeStatus, CustomPaymentChoices, PaymentError
+from ...payment.utils import (
+    clean_mark_order_as_paid, gateway_capture, gateway_refund, gateway_void,
+    mark_order_as_paid)
 from ...product.models import Product, ProductVariant
 from ...product.utils import allocate_stock, deallocate_stock
 from ...shipping.models import ShippingMethod
@@ -251,19 +252,18 @@ class OrderNoteForm(forms.Form):
 
 
 class ManagePaymentForm(forms.Form):
-    amount = MoneyField(
+    amount = forms.DecimalField(
         label=pgettext_lazy(
-            'Payment management form (capture, refund, release)', 'Amount'),
-        max_digits=12,
-        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        currency=settings.DEFAULT_CURRENCY)
+            'Payment management form (capture, refund, void)', 'Amount'),
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES)
 
     def __init__(self, *args, **kwargs):
         self.payment = kwargs.pop('payment')
         super().__init__(*args, **kwargs)
 
     def clean(self):
-        if self.payment.status != self.clean_status:
+        if self.payment.charge_status != self.clean_status:
             raise forms.ValidationError(self.clean_error)
 
     def payment_error(self, message):
@@ -272,9 +272,9 @@ class ManagePaymentForm(forms.Form):
                 'Payment form error', 'Payment gateway error: %s') % message)
 
     def try_payment_action(self, action):
-        money = self.cleaned_data['amount']
+        amount = self.cleaned_data['amount']
         try:
-            action(money.amount)
+            action(self.payment, amount)
         except (PaymentError, ValueError) as e:
             self.payment_error(str(e))
             return False
@@ -283,53 +283,53 @@ class ManagePaymentForm(forms.Form):
 
 class CapturePaymentForm(ManagePaymentForm):
 
-    clean_status = PaymentStatus.PREAUTH
+    clean_status = ChargeStatus.NOT_CHARGED
     clean_error = pgettext_lazy('Payment form error',
                                 'Only pre-authorized payments can be captured')
 
     def capture(self):
-        return self.try_payment_action(self.payment.capture)
+        return self.try_payment_action(gateway_capture)
 
 
 class RefundPaymentForm(ManagePaymentForm):
 
-    clean_status = PaymentStatus.CONFIRMED
+    clean_status = ChargeStatus.CHARGED
     clean_error = pgettext_lazy('Payment form error',
                                 'Only confirmed payments can be refunded')
 
     def clean(self):
         super().clean()
-        if self.payment.variant == CustomPaymentChoices.MANUAL:
+        if self.payment.gateway == CustomPaymentChoices.MANUAL:
             raise forms.ValidationError(
                 pgettext_lazy(
                     'Payment form error',
                     'Manual payments can not be refunded'))
 
     def refund(self):
-        return self.try_payment_action(self.payment.refund)
+        return self.try_payment_action(gateway_refund)
 
 
-class ReleasePaymentForm(forms.Form):
+class VoidPaymentForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         self.payment = kwargs.pop('payment')
         super().__init__(*args, **kwargs)
 
     def clean(self):
-        if self.payment.status != PaymentStatus.PREAUTH:
+        if self.payment.charge_status != ChargeStatus.NOT_CHARGED:
             raise forms.ValidationError(
                 pgettext_lazy(
                     'Payment form error',
-                    'Only pre-authorized payments can be released'))
+                    'Only pre-authorized payments can be voided'))
 
     def payment_error(self, message):
         self.add_error(
             None, pgettext_lazy(
                 'Payment form error', 'Payment gateway error: %s') % message)
 
-    def release(self):
+    def void(self):
         try:
-            self.payment.release()
+            gateway_void(self.payment)
         except (PaymentError, ValueError) as e:
             self.payment_error(str(e))
             return False
@@ -341,30 +341,18 @@ class OrderMarkAsPaidForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         self.order = kwargs.pop('order')
+        self.user = kwargs.pop('user')
         super().__init__(*args, **kwargs)
 
     def clean(self):
         super().clean()
-        if self.order.payments.exists():
-            raise forms.ValidationError(
-                pgettext_lazy(
-                    'Mark order as paid form error',
-                    'Orders with payments can not be manually marked as paid'))
+        try:
+            clean_mark_order_as_paid(self.order)
+        except PaymentError as e:
+            raise forms.ValidationError(str(e))
 
     def save(self):
-        defaults = {
-            'total': self.order.total.gross.amount,
-            'tax': self.order.total.tax.amount,
-            'currency': self.order.total.currency,
-            'delivery': self.order.shipping_price.net.amount,
-            'description': pgettext_lazy(
-                'Payment description', 'Order %(order)s') % {
-                    'order': self.order},
-            'captured_amount': self.order.total.gross.amount}
-        Payment.objects.get_or_create(
-            variant=CustomPaymentChoices.MANUAL,
-            status=PaymentStatus.CONFIRMED, order=self.order,
-            defaults=defaults)
+        mark_order_as_paid(self.order, self.user)
 
 
 class CancelOrderLineForm(forms.Form):
@@ -405,7 +393,7 @@ class ChangeQuantityForm(forms.ModelForm):
                     'Change quantity form error',
                     'Only %(remaining)d remaining in stock.',
                     'Only %(remaining)d remaining in stock.',
-                    'remaining') % {
+                    number='remaining') % {
                         'remaining': (
                             self.initial_quantity + variant.quantity_available)})  # noqa
         return quantity
@@ -437,7 +425,7 @@ class CancelOrderForm(forms.Form):
             'Cancel order form action',
             'Restock %(quantity)d item',
             'Restock %(quantity)d items',
-            'quantity') % {'quantity': self.order.get_total_quantity()}
+            number='quantity') % {'quantity': self.order.get_total_quantity()}
 
     def clean(self):
         data = super().clean()
@@ -467,7 +455,7 @@ class CancelFulfillmentForm(forms.Form):
             'Cancel fulfillment form action',
             'Restock %(quantity)d item',
             'Restock %(quantity)d items',
-            'quantity') % {'quantity': self.fulfillment.get_total_quantity()}
+            number='quantity') % {'quantity': self.fulfillment.get_total_quantity()}
 
     def clean(self):
         data = super().clean()
@@ -530,7 +518,7 @@ class OrderRemoveVoucherForm(forms.ModelForm):
 
 PAYMENT_STATUS_CHOICES = (
     [('', pgettext_lazy('Payment status field value', 'All'))] +
-    PaymentStatus.CHOICES)
+    ChargeStatus.CHOICES)
 
 
 class PaymentFilterForm(forms.Form):
@@ -542,7 +530,7 @@ class AddVariantToOrderForm(forms.Form):
 
     variant = AjaxSelect2ChoiceField(
         queryset=ProductVariant.objects.filter(
-            product__in=Product.objects.available_products()),
+            product__in=Product.objects.published()),
         fetch_data_url=reverse_lazy('dashboard:ajax-available-variants'),
         label=pgettext_lazy(
             'Order form: subform to add variant to order form: variant field',
@@ -642,7 +630,7 @@ class FulfillmentLineForm(forms.ModelForm):
                 'Fulfill order line form error',
                 '%(quantity)d item remaining to fulfill.',
                 '%(quantity)d items remaining to fulfill.',
-                'quantity') % {
+                number='quantity') % {
                     'quantity': order_line.quantity_unfulfilled,
                     'order_line': order_line})
         return quantity

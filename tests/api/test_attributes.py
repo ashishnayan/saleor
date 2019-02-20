@@ -1,9 +1,10 @@
-import pytest
-
 import graphene
+import pytest
+from django.db.models import Q
 from django.template.defaultfilters import slugify
-from saleor.graphql.product.types import (
-    AttributeTypeEnum, AttributeValueType, resolve_attribute_value_type)
+
+from saleor.graphql.product.enums import AttributeTypeEnum, AttributeValueType
+from saleor.graphql.product.types import resolve_attribute_value_type
 from saleor.graphql.product.utils import attributes_to_hstore
 from saleor.product.models import Attribute, AttributeValue, Category
 from tests.api.utils import get_graphql_content
@@ -39,7 +40,7 @@ def test_attributes_query(user_api_client, product):
     attributes = Attribute.objects.prefetch_related('values')
     query = """
     query {
-        attributes {
+        attributes(first: 20) {
             edges {
                 node {
                     id
@@ -65,7 +66,7 @@ def test_attributes_in_category_query(user_api_client, product):
     category = Category.objects.first()
     query = """
     query {
-        attributes(inCategory: "%(category_id)s") {
+        attributes(inCategory: "%(category_id)s", first: 20) {
             edges {
                 node {
                     id
@@ -85,6 +86,37 @@ def test_attributes_in_category_query(user_api_client, product):
     content = get_graphql_content(response)
     attributes_data = content['data']['attributes']['edges']
     assert len(attributes_data) == Attribute.objects.count()
+
+
+def test_attributes_in_collection_query(user_api_client, sale):
+    product_types = set(
+        sale.products.all().values_list('product_type_id', flat=True))
+    expected_attrs = Attribute.objects.filter(
+        Q(product_type__in=product_types)
+        | Q(product_variant_type__in=product_types))
+
+    query = """
+    query {
+        attributes(inCollection: "%(collection_id)s", first: 20) {
+            edges {
+                node {
+                    id
+                    name
+                    slug
+                    values {
+                        id
+                        name
+                        slug
+                    }
+                }
+            }
+        }
+    }
+    """ % {'collection_id': graphene.Node.to_global_id('Collection', sale.id)}
+    response = user_api_client.post_graphql(query)
+    content = get_graphql_content(response)
+    attributes_data = content['data']['attributes']['edges']
+    assert len(attributes_data) == len(expected_attrs)
 
 
 CREATE_ATTRIBUTES_QUERY = """
@@ -270,6 +302,26 @@ def test_update_attribute_remove_and_add_values(
     assert not data['errors']
     assert data['attribute']['name'] == name == attribute.name
     assert not attribute.values.filter(pk=attribute_value_id).exists()
+    assert attribute.values.filter(name=attribute_value_name).exists()
+
+
+def test_update_empty_attribute_and_add_values(
+        staff_api_client, color_attribute_without_values,
+        permission_manage_products):
+    query = UPDATE_ATTRIBUTE_QUERY
+    attribute = color_attribute_without_values
+    name = 'Wings name'
+    attribute_value_name = 'Yellow Color'
+    id = graphene.Node.to_global_id('Attribute', attribute.id)
+    variables = {
+        'name': name, 'id': id,
+        'addValues': [{'name': attribute_value_name, 'value': '#1231'}],
+        'removeValues': []}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products])
+    content = get_graphql_content(response)
+    attribute.refresh_from_db()
+    assert attribute.values.count() == 1
     assert attribute.values.filter(name=attribute_value_name).exists()
 
 
@@ -529,36 +581,3 @@ def test_delete_attribute_value(
 ])
 def test_resolve_attribute_value_type(raw_value, expected_type):
     assert resolve_attribute_value_type(raw_value) == expected_type
-
-
-def test_query_attribute_values(
-        color_attribute, pink_attribute_value, user_api_client):
-    attribute_id = graphene.Node.to_global_id(
-        'Attribute', color_attribute.id)
-    query = """
-    query getAttribute($id: ID!) {
-        attributes(id: $id) {
-            edges {
-                node {
-                    id
-                    name
-                    values {
-                        name
-                        type
-                        value
-                    }
-                }
-            }
-        }
-    }
-    """
-    variables = {'id': attribute_id}
-    response = user_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    data = content['data']['attributes']['edges'][0]['node']
-    values = data['values']
-    pink = [v for v in values if v['name'] == pink_attribute_value.name]
-    assert len(pink) == 1
-    pink = pink[0]
-    assert pink['value'] == '#FF69B4'
-    assert pink['type'] == 'COLOR'

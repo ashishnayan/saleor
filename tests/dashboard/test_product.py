@@ -1,19 +1,18 @@
 import json
 from unittest.mock import MagicMock, Mock
 
-from django.conf import settings
 from django.forms import HiddenInput
 from django.forms.models import model_to_dict
 from django.urls import reverse
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
-from tests.utils import get_redirect_location
 
 from saleor.dashboard.product import ProductBulkAction
 from saleor.dashboard.product.forms import ProductForm, ProductVariantForm
 from saleor.product.forms import VariantChoiceField
 from saleor.product.models import (
-    AttributeValue, Collection, Product, Attribute, ProductImage,
-    ProductType, ProductVariant)
+    Attribute, AttributeValue, Collection, Product, ProductImage, ProductType,
+    ProductVariant)
+from tests.utils import get_redirect_location
 
 from ..utils import create_image
 
@@ -77,7 +76,7 @@ def test_view_product_list_with_filters_no_results(admin_client, product_list):
     assert list(response.context['filter_set'].qs) == []
 
 
-def test_view_product_list_pagination(admin_client, product_list):
+def test_view_product_list_pagination(admin_client, product_list, settings):
     settings.DASHBOARD_PAGINATE_BY = 1
     url = reverse('dashboard:product-list')
     data = {'page': '1'}
@@ -95,7 +94,8 @@ def test_view_product_list_pagination(admin_client, product_list):
     assert not response.context['filter_set'].is_bound_unsorted
 
 
-def test_view_product_list_pagination_with_filters(admin_client, product_list):
+def test_view_product_list_pagination_with_filters(
+        admin_client, product_list, settings):
     settings.DASHBOARD_PAGINATE_BY = 1
     url = reverse('dashboard:product-list')
     data = {
@@ -231,7 +231,7 @@ def test_view_product_not_deleted_before_confirmation(
 
 def test_view_product_bulk_update_publish(admin_client, product_list):
     url = reverse('dashboard:product-bulk-update')
-    products =  [product.pk for product in product_list]
+    products = [product.pk for product in product_list]
     data = {'action': ProductBulkAction.PUBLISH, 'products': products}
 
     response = admin_client.post(url, data)
@@ -246,7 +246,7 @@ def test_view_product_bulk_update_publish(admin_client, product_list):
 
 def test_view_product_bulk_update_unpublish(admin_client, product_list):
     url = reverse('dashboard:product-bulk-update')
-    products =  [product.pk for product in product_list]
+    products = [product.pk for product in product_list]
     data = {'action': ProductBulkAction.UNPUBLISH, 'products': products}
 
     response = admin_client.post(url, data)
@@ -467,7 +467,8 @@ def test_view_product_variant_details(admin_client, product):
 
 
 def test_view_product_variant_details_redirect_to_product(
-        admin_client, product):
+        admin_client, product_with_default_variant):
+    product = product_with_default_variant
     variant = product.variants.get()
     url = reverse(
         'dashboard:variant-details',
@@ -559,7 +560,8 @@ def test_view_variant_images(admin_client, product_with_image):
     assert variant.variant_images.filter(image=product_image).exists()
 
 
-def test_view_ajax_available_variants_list(admin_client, product, category):
+def test_view_ajax_available_variants_list(
+        admin_client, product, category, settings):
     unavailable_product = Product.objects.create(
         name='Test product', price=Money(10, settings.DEFAULT_CURRENCY),
         product_type=product.product_type,
@@ -964,15 +966,20 @@ def test_view_ajax_reorder_attribute_values_invalid(
 def test_get_formfield_name_with_unicode_characters(db):
     text_attribute = Attribute.objects.create(
         slug='ąęαβδηθλμπ', name='ąęαβδηθλμπ')
-    assert text_attribute.get_formfield_name() == 'attribute-ąęαβδηθλμπ'
+    assert text_attribute.get_formfield_name() == 'attribute-ąęαβδηθλμπ-{}'.format(
+        text_attribute.pk)
 
 
-def test_product_variant_form(product):
+def test_product_variant_form(product, size_attribute):
     variant = product.variants.first()
     variant.name = ''
     variant.save()
+
     example_size = 'Small Size'
-    data = {'attribute-size': example_size, 'sku': '1111', 'quantity': 2}
+    data = {
+        'attribute-{}-{}'.format(
+            size_attribute.slug, size_attribute.pk): example_size,
+        'sku': '1111', 'quantity': 2}
 
     form = ProductVariantForm(data, instance=variant)
     assert form.is_valid()
@@ -1006,8 +1013,10 @@ def test_product_form_change_attributes(db, product, color_attribute):
         'price': product.price.amount,
         'category': product.category.pk,
         'description': 'description',
-        'attribute-author': new_author,
-        'attribute-color': color_value.pk}
+        'attribute-{}-{}'.format(
+            text_attribute.slug, text_attribute.pk): new_author,
+        'attribute-{}-{}'.format(
+            color_attribute.slug, color_attribute.pk): color_value.pk}
 
     form = ProductForm(data, instance=product)
     assert form.is_valid()
@@ -1037,7 +1046,8 @@ def test_product_form_assign_collection_to_product(product):
     assert collection.products.first().name == product.name
 
 
-def test_product_form_sanitize_product_description(product_type, category):
+def test_product_form_sanitize_product_description(
+        product_type, category, settings):
     product = Product.objects.create(
         name='Test Product', price=Money(10, settings.DEFAULT_CURRENCY),
         description='', pk=10, product_type=product_type, category=category)

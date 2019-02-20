@@ -2,10 +2,10 @@ import IconButton from "@material-ui/core/IconButton";
 import AddIcon from "@material-ui/icons/Add";
 import * as React from "react";
 
-import { PageListProps } from "../../..";
 import Container from "../../../components/Container";
 import PageHeader from "../../../components/PageHeader";
 import i18n from "../../../i18n";
+import { PageListProps } from "../../../types";
 import PageList from "../../components/PageList";
 
 interface PageListPageProps extends PageListProps {
@@ -13,7 +13,7 @@ interface PageListPageProps extends PageListProps {
     id: string;
     title: string;
     slug: string;
-    isVisible: boolean;
+    isPublished: boolean;
   }>;
 }
 
@@ -46,4 +46,5 @@ const PageListPage: React.StatelessComponent<PageListPageProps> = ({
     />
   </Container>
 );
+PageListPage.displayName = "PageListPage";
 export default PageListPage;

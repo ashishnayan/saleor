@@ -1,10 +1,11 @@
+import { transformOrderStatus, transformPaymentStatus } from "../misc";
 import {
   FulfillmentStatus,
+  OrderAction,
   OrderEvents,
   OrderStatus,
-  PaymentStatusEnum
+  PaymentChargeStatusEnum
 } from "../types/globalTypes";
-import { transformOrderStatus, transformPaymentStatus } from "./";
 import { OrderDetails_order } from "./types/OrderDetails";
 import { OrderList_orders_edges_node } from "./types/OrderList";
 import { UserSearch_customers_edges_node } from "./types/UserSearch";
@@ -56,7 +57,7 @@ export const orders: OrderList_orders_edges_node[] = [
     created: "2018-09-11T09:37:30.376876+00:00",
     id: "T3JkZXI6MjA=",
     number: "20",
-    paymentStatus: PaymentStatusEnum.CONFIRMED,
+    paymentStatus: PaymentChargeStatusEnum.CHARGED,
     status: OrderStatus.CANCELED,
     total: {
       __typename: "TaxedMoney",
@@ -92,7 +93,7 @@ export const orders: OrderList_orders_edges_node[] = [
     created: "2018-09-11T09:37:30.124154+00:00",
     id: "T3JkZXI6MTk=",
     number: "19",
-    paymentStatus: PaymentStatusEnum.CONFIRMED,
+    paymentStatus: PaymentChargeStatusEnum.CHARGED,
     status: OrderStatus.CANCELED,
     total: {
       __typename: "TaxedMoney",
@@ -110,7 +111,7 @@ export const orders: OrderList_orders_edges_node[] = [
     created: "2018-09-11T09:37:30.019749+00:00",
     id: "T3JkZXI6MTg=",
     number: "18",
-    paymentStatus: PaymentStatusEnum.PREAUTH,
+    paymentStatus: PaymentChargeStatusEnum.NOT_CHARGED,
     status: OrderStatus.DRAFT,
     total: {
       __typename: "TaxedMoney",
@@ -146,7 +147,7 @@ export const orders: OrderList_orders_edges_node[] = [
     created: "2018-09-11T09:37:29.864391+00:00",
     id: "T3JkZXI6MTc=",
     number: "17",
-    paymentStatus: PaymentStatusEnum.PREAUTH,
+    paymentStatus: PaymentChargeStatusEnum.NOT_CHARGED,
     status: OrderStatus.CANCELED,
     total: {
       __typename: "TaxedMoney",
@@ -182,7 +183,7 @@ export const orders: OrderList_orders_edges_node[] = [
     created: "2018-09-11T09:37:29.610339+00:00",
     id: "T3JkZXI6MTY=",
     number: "16",
-    paymentStatus: PaymentStatusEnum.PREAUTH,
+    paymentStatus: PaymentChargeStatusEnum.NOT_CHARGED,
     status: OrderStatus.CANCELED,
     total: {
       __typename: "TaxedMoney",
@@ -218,7 +219,7 @@ export const orders: OrderList_orders_edges_node[] = [
     created: "2018-09-11T09:37:29.336209+00:00",
     id: "T3JkZXI6MTU=",
     number: "15",
-    paymentStatus: PaymentStatusEnum.REJECTED,
+    paymentStatus: PaymentChargeStatusEnum.NOT_CHARGED,
     status: OrderStatus.CANCELED,
     total: {
       __typename: "TaxedMoney",
@@ -254,7 +255,7 @@ export const orders: OrderList_orders_edges_node[] = [
     created: "2018-09-11T09:37:29.103651+00:00",
     id: "T3JkZXI6MTQ=",
     number: "14",
-    paymentStatus: PaymentStatusEnum.WAITING,
+    paymentStatus: PaymentChargeStatusEnum.NOT_CHARGED,
     status: OrderStatus.CANCELED,
     total: {
       __typename: "TaxedMoney",
@@ -290,7 +291,7 @@ export const orders: OrderList_orders_edges_node[] = [
     created: "2018-09-11T09:37:28.921956+00:00",
     id: "T3JkZXI6MTM=",
     number: "13",
-    paymentStatus: PaymentStatusEnum.WAITING,
+    paymentStatus: PaymentChargeStatusEnum.NOT_CHARGED,
     status: OrderStatus.CANCELED,
     total: {
       __typename: "TaxedMoney",
@@ -326,7 +327,7 @@ export const orders: OrderList_orders_edges_node[] = [
     created: "2018-09-11T09:37:28.750718+00:00",
     id: "T3JkZXI6MTI=",
     number: "12",
-    paymentStatus: PaymentStatusEnum.PREAUTH,
+    paymentStatus: PaymentChargeStatusEnum.NOT_CHARGED,
     status: OrderStatus.CANCELED,
     total: {
       __typename: "TaxedMoney",
@@ -362,7 +363,7 @@ export const orders: OrderList_orders_edges_node[] = [
     created: "2018-09-11T09:37:28.598246+00:00",
     id: "T3JkZXI6MTE=",
     number: "11",
-    paymentStatus: PaymentStatusEnum.CONFIRMED,
+    paymentStatus: PaymentChargeStatusEnum.CHARGED,
     status: OrderStatus.UNFULFILLED,
     total: {
       __typename: "TaxedMoney",
@@ -398,7 +399,7 @@ export const orders: OrderList_orders_edges_node[] = [
     created: "2018-09-11T09:37:28.409836+00:00",
     id: "T3JkZXI6MTA=",
     number: "10",
-    paymentStatus: PaymentStatusEnum.PREAUTH,
+    paymentStatus: PaymentChargeStatusEnum.NOT_CHARGED,
     status: OrderStatus.CANCELED,
     total: {
       __typename: "TaxedMoney",
@@ -434,7 +435,7 @@ export const orders: OrderList_orders_edges_node[] = [
     created: "2018-09-11T09:37:28.185874+00:00",
     id: "T3JkZXI6OQ==",
     number: "9",
-    paymentStatus: PaymentStatusEnum.PREAUTH,
+    paymentStatus: PaymentChargeStatusEnum.NOT_CHARGED,
     status: OrderStatus.PARTIALLY_FULFILLED,
     total: {
       __typename: "TaxedMoney",
@@ -470,7 +471,7 @@ export const orders: OrderList_orders_edges_node[] = [
     created: "2018-09-11T09:37:27.953588+00:00",
     id: "T3JkZXI6OA==",
     number: "8",
-    paymentStatus: PaymentStatusEnum.WAITING,
+    paymentStatus: PaymentChargeStatusEnum.NOT_CHARGED,
     status: OrderStatus.PARTIALLY_FULFILLED,
     total: {
       __typename: "TaxedMoney",
@@ -506,7 +507,7 @@ export const orders: OrderList_orders_edges_node[] = [
     created: "2018-09-11T09:37:27.828033+00:00",
     id: "T3JkZXI6Nw==",
     number: "7",
-    paymentStatus: PaymentStatusEnum.CONFIRMED,
+    paymentStatus: PaymentChargeStatusEnum.CHARGED,
     status: OrderStatus.PARTIALLY_FULFILLED,
     total: {
       __typename: "TaxedMoney",
@@ -542,7 +543,7 @@ export const orders: OrderList_orders_edges_node[] = [
     created: "2018-09-11T09:37:27.636741+00:00",
     id: "T3JkZXI6Ng==",
     number: "6",
-    paymentStatus: PaymentStatusEnum.WAITING,
+    paymentStatus: PaymentChargeStatusEnum.NOT_CHARGED,
     status: OrderStatus.FULFILLED,
     total: {
       __typename: "TaxedMoney",
@@ -578,7 +579,7 @@ export const orders: OrderList_orders_edges_node[] = [
     created: "2018-09-11T09:37:27.420590+00:00",
     id: "T3JkZXI6NQ==",
     number: "5",
-    paymentStatus: PaymentStatusEnum.WAITING,
+    paymentStatus: PaymentChargeStatusEnum.NOT_CHARGED,
     status: OrderStatus.PARTIALLY_FULFILLED,
     total: {
       __typename: "TaxedMoney",
@@ -614,7 +615,7 @@ export const orders: OrderList_orders_edges_node[] = [
     created: "2018-09-11T09:37:27.230990+00:00",
     id: "T3JkZXI6NA==",
     number: "4",
-    paymentStatus: PaymentStatusEnum.WAITING,
+    paymentStatus: PaymentChargeStatusEnum.NOT_CHARGED,
     status: OrderStatus.PARTIALLY_FULFILLED,
     total: {
       __typename: "TaxedMoney",
@@ -650,7 +651,7 @@ export const orders: OrderList_orders_edges_node[] = [
     created: "2018-09-11T09:37:26.972507+00:00",
     id: "T3JkZXI6Mw==",
     number: "3",
-    paymentStatus: PaymentStatusEnum.WAITING,
+    paymentStatus: PaymentChargeStatusEnum.NOT_CHARGED,
     status: OrderStatus.PARTIALLY_FULFILLED,
     total: {
       __typename: "TaxedMoney",
@@ -686,7 +687,7 @@ export const orders: OrderList_orders_edges_node[] = [
     created: "2018-09-11T09:37:26.751359+00:00",
     id: "T3JkZXI6Mg==",
     number: "2",
-    paymentStatus: PaymentStatusEnum.CONFIRMED,
+    paymentStatus: PaymentChargeStatusEnum.CHARGED,
     status: OrderStatus.PARTIALLY_FULFILLED,
     total: {
       __typename: "TaxedMoney",
@@ -722,7 +723,7 @@ export const orders: OrderList_orders_edges_node[] = [
     created: "2018-09-11T09:37:26.314968+00:00",
     id: "T3JkZXI6MQ==",
     number: "1",
-    paymentStatus: PaymentStatusEnum.WAITING,
+    paymentStatus: PaymentChargeStatusEnum.CHARGED,
     status: OrderStatus.PARTIALLY_FULFILLED,
     total: {
       __typename: "TaxedMoney",
@@ -737,6 +738,12 @@ export const orders: OrderList_orders_edges_node[] = [
 ];
 export const order = (placeholder: string): OrderDetails_order => ({
   __typename: "Order",
+  actions: [
+    OrderAction.CAPTURE,
+    OrderAction.MARK_AS_PAID,
+    OrderAction.REFUND,
+    OrderAction.VOID
+  ],
   availableShippingMethods: [
     {
       __typename: "ShippingMethod",
@@ -788,7 +795,9 @@ export const order = (placeholder: string): OrderDetails_order => ({
     streetAddress1: "487 Roberto Shores",
     streetAddress2: ""
   },
+  canFinalize: true,
   created: "2018-09-11T09:37:28.185874+00:00",
+  customerNote: "Lorem ipsum dolor sit amet",
   events: [
     {
       __typename: "OrderEvent",
@@ -811,41 +820,36 @@ export const order = (placeholder: string): OrderDetails_order => ({
       __typename: "Fulfillment",
       fulfillmentOrder: 2,
       id: "RnVsZmlsbG1lbnQ6MjQ=",
-      lines: {
-        __typename: "FulfillmentLineCountableConnection",
-        edges: [
-          {
-            __typename: "FulfillmentLineCountableEdge",
-            node: {
-              __typename: "FulfillmentLine",
-              id: "RnVsZmlsbG1lbnRMaW5lOjM5",
-              orderLine: {
-                __typename: "OrderLine",
-                id: "T3JkZXJMaW5lOjIz",
-                productName: "Williams, Garcia and Walker (XS)",
-                productSku: "5-1337",
-                quantity: 2,
-                quantityFulfilled: 2,
-                thumbnailUrl: placeholder,
-                unitPrice: {
-                  __typename: "TaxedMoney",
-                  gross: {
-                    __typename: "Money",
-                    amount: 79.71,
-                    currency: "USD"
-                  },
-                  net: {
-                    __typename: "Money",
-                    amount: 79.71,
-                    currency: "USD"
-                  }
-                }
+      lines: [
+        {
+          __typename: "FulfillmentLine",
+          id: "RnVsZmlsbG1lbnRMaW5lOjM5",
+          orderLine: {
+            __typename: "OrderLine",
+            id: "T3JkZXJMaW5lOjIz",
+            isShippingRequired: false,
+            productName: "Williams, Garcia and Walker (XS)",
+            productSku: "5-1337",
+            quantity: 2,
+            quantityFulfilled: 2,
+            thumbnailUrl: placeholder,
+            unitPrice: {
+              __typename: "TaxedMoney",
+              gross: {
+                __typename: "Money",
+                amount: 79.71,
+                currency: "USD"
               },
-              quantity: 1
+              net: {
+                __typename: "Money",
+                amount: 79.71,
+                currency: "USD"
+              }
             }
-          }
-        ]
-      },
+          },
+          quantity: 1
+        }
+      ],
       status: FulfillmentStatus.FULFILLED,
       trackingNumber: ""
     },
@@ -853,41 +857,36 @@ export const order = (placeholder: string): OrderDetails_order => ({
       __typename: "Fulfillment",
       fulfillmentOrder: 1,
       id: "RnVsZmlsbG1lbnQ6OQ==",
-      lines: {
-        __typename: "FulfillmentLineCountableConnection",
-        edges: [
-          {
-            __typename: "FulfillmentLineCountableEdge",
-            node: {
-              __typename: "FulfillmentLine",
-              id: "RnVsZmlsbG1lbnRMaW5lOjE1",
-              orderLine: {
-                __typename: "OrderLine",
-                id: "T3JkZXJMaW5lOjIz",
-                productName: "Williams, Garcia and Walker (XS)",
-                productSku: "5-1337",
-                quantity: 2,
-                quantityFulfilled: 2,
-                thumbnailUrl: placeholder,
-                unitPrice: {
-                  __typename: "TaxedMoney",
-                  gross: {
-                    __typename: "Money",
-                    amount: 79.71,
-                    currency: "USD"
-                  },
-                  net: {
-                    __typename: "Money",
-                    amount: 79.71,
-                    currency: "USD"
-                  }
-                }
+      lines: [
+        {
+          __typename: "FulfillmentLine",
+          id: "RnVsZmlsbG1lbnRMaW5lOjE1",
+          orderLine: {
+            __typename: "OrderLine",
+            id: "T3JkZXJMaW5lOjIz",
+            isShippingRequired: false,
+            productName: "Williams, Garcia and Walker (XS)",
+            productSku: "5-1337",
+            quantity: 2,
+            quantityFulfilled: 2,
+            thumbnailUrl: placeholder,
+            unitPrice: {
+              __typename: "TaxedMoney",
+              gross: {
+                __typename: "Money",
+                amount: 79.71,
+                currency: "USD"
               },
-              quantity: 1
+              net: {
+                __typename: "Money",
+                amount: 79.71,
+                currency: "USD"
+              }
             }
-          }
-        ]
-      },
+          },
+          quantity: 1
+        }
+      ],
       status: FulfillmentStatus.FULFILLED,
       trackingNumber: ""
     }
@@ -897,6 +896,7 @@ export const order = (placeholder: string): OrderDetails_order => ({
     {
       __typename: "OrderLine",
       id: "T3JkZXJMaW5lOjIy",
+      isShippingRequired: true,
       productName: "Watkins-Gonzalez (Soft)",
       productSku: "59-1337",
       quantity: 3,
@@ -919,6 +919,7 @@ export const order = (placeholder: string): OrderDetails_order => ({
     {
       __typename: "OrderLine",
       id: "T3JkZXJMaW5lOjIz",
+      isShippingRequired: true,
       productName: "Williams, Garcia and Walker (XS)",
       productSku: "5-1337",
       quantity: 2,
@@ -940,7 +941,7 @@ export const order = (placeholder: string): OrderDetails_order => ({
     }
   ],
   number: "9",
-  paymentStatus: PaymentStatusEnum.PREAUTH,
+  paymentStatus: PaymentChargeStatusEnum.NOT_CHARGED,
   shippingAddress: {
     __typename: "Address",
     city: "West Patriciastad",
@@ -1005,11 +1006,14 @@ export const order = (placeholder: string): OrderDetails_order => ({
   user: null,
   userEmail: "melissa.simon@example.com"
 });
-export const draftOrder = (placeholder: string) => ({
+export const draftOrder = (placeholder: string): OrderDetails_order => ({
   __typename: "Order" as "Order",
+  actions: [OrderAction.CAPTURE],
   availableShippingMethods: null,
   billingAddress: null,
+  canFinalize: true,
   created: "2018-09-20T23:23:39.811428+00:00",
+  customerNote: "Lorem ipsum dolor sit",
   events: [],
   fulfillments: [],
   id: "T3JkZXI6MjQ=",
@@ -1017,6 +1021,7 @@ export const draftOrder = (placeholder: string) => ({
     {
       __typename: "OrderLine" as "OrderLine",
       id: "T3JkZXJMaW5lOjQ1",
+      isShippingRequired: false,
       productName: "Davis Group (Hard)",
       productSku: "58-1338",
       quantity: 2,
@@ -1039,6 +1044,7 @@ export const draftOrder = (placeholder: string) => ({
     {
       __typename: "OrderLine" as "OrderLine",
       id: "T3JkZXJMaW5lOjQ2",
+      isShippingRequired: false,
       productName: "Anderson PLC (15-1337)",
       productSku: "15-1337",
       quantity: 2,
@@ -1124,4 +1130,70 @@ export const countries = [
 export const shippingMethods = [
   { id: "s1", name: "DHL", country: "whole world", price: {} },
   { id: "s2", name: "UPS", country: "Afghanistan" }
+];
+export const orderLineSearch = (placeholderImage: string) => [
+  {
+    __typename: "Product" as "Product",
+    id: "UHJvZHVjdDo3Mg==",
+    name: "Apple Juice",
+    thumbnail: {
+      __typename: "Image" as "Image",
+      url: placeholderImage
+    },
+    variants: [
+      {
+        __typename: "ProductVariant" as "ProductVariant",
+        id: "UHJvZHVjdFZhcmlhbnQ6MjAy",
+        name: "500ml",
+        price: { amount: 3.0, currency: "USD", __typename: "Money" as "Money" },
+        sku: "93855755"
+      },
+      {
+        __typename: "ProductVariant" as "ProductVariant",
+        id: "UHJvZHVjdFZhcmlhbnQ6MjAz",
+        name: "1l",
+        price: { amount: 5.0, currency: "USD", __typename: "Money" as "Money" },
+        sku: "43226647"
+      },
+      {
+        __typename: "ProductVariant" as "ProductVariant",
+        id: "UHJvZHVjdFZhcmlhbnQ6MjA0",
+        name: "2l",
+        price: { amount: 7.0, currency: "USD", __typename: "Money" as "Money" },
+        sku: "80884671"
+      }
+    ]
+  },
+  {
+    __typename: "Product" as "Product",
+    id: "UHJvZHVjdDo3NQ==",
+    name: "Pineapple Juice",
+    thumbnail: {
+      __typename: "Image" as "Image",
+      url: placeholderImage
+    },
+    variants: [
+      {
+        __typename: "ProductVariant" as "ProductVariant",
+        id: "UHJvZHVjdFZhcmlhbnQ6MjEx",
+        name: "500ml",
+        price: { amount: 3.0, currency: "USD", __typename: "Money" as "Money" },
+        sku: "43200242"
+      },
+      {
+        __typename: "ProductVariant" as "ProductVariant",
+        id: "UHJvZHVjdFZhcmlhbnQ6MjEy",
+        name: "1l",
+        price: { amount: 5.0, currency: "USD", __typename: "Money" as "Money" },
+        sku: "79129513"
+      },
+      {
+        __typename: "ProductVariant" as "ProductVariant",
+        id: "UHJvZHVjdFZhcmlhbnQ6MjEz",
+        name: "2l",
+        price: { amount: 7.0, currency: "USD", __typename: "Money" as "Money" },
+        sku: "75799450"
+      }
+    ]
+  }
 ];

@@ -2,60 +2,66 @@ import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
 import CardActions from "@material-ui/core/CardActions";
 import CardContent from "@material-ui/core/CardContent";
-import { withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import * as React from "react";
 
-import { transformPaymentStatus } from "../..";
 import CardTitle from "../../../components/CardTitle";
 import { Hr } from "../../../components/Hr";
-import Money from "../../../components/Money";
+import Money, { subtractMoney } from "../../../components/Money";
 import Skeleton from "../../../components/Skeleton";
 import StatusLabel from "../../../components/StatusLabel";
 import i18n from "../../../i18n";
-import { maybe } from "../../../misc";
-import { OrderStatus, PaymentStatusEnum } from "../../../types/globalTypes";
+import { maybe, transformPaymentStatus } from "../../../misc";
+import { OrderAction, OrderStatus } from "../../../types/globalTypes";
 import { OrderDetails_order } from "../../types/OrderDetails";
 
-interface OrderPaymentProps {
+const styles = (theme: Theme) =>
+  createStyles({
+    root: {
+      ...theme.typography.body1,
+      lineHeight: 1.9,
+      width: "100%"
+    },
+    textRight: {
+      textAlign: "right"
+    },
+    totalRow: {
+      fontWeight: 600
+    }
+  });
+
+interface OrderPaymentProps extends WithStyles<typeof styles> {
   order: OrderDetails_order;
   onCapture: () => void;
   onMarkAsPaid: () => void;
   onRefund: () => void;
-  onRelease: () => void;
+  onVoid: () => void;
 }
 
-const decorate = withStyles(theme => ({
-  root: {
-    ...theme.typography.body1,
-    lineHeight: 1.9,
-    width: "100%"
-  },
-  textRight: {
-    textAlign: "right" as "right"
-  },
-  totalRow: {
-    fontWeight: 600 as 600
-  }
-}));
-const OrderPayment = decorate<OrderPaymentProps>(
-  ({ classes, order, onCapture, onMarkAsPaid, onRefund, onRelease }) => {
-    const canCapture = maybe(() => order.paymentStatus)
-      ? order.paymentStatus === PaymentStatusEnum.PREAUTH &&
-        order.status !== OrderStatus.CANCELED
-      : false;
-    const canRelease = maybe(() => order.paymentStatus)
-      ? order.paymentStatus === PaymentStatusEnum.PREAUTH
-      : false;
-    const canRefund = maybe(() => order.paymentStatus)
-      ? order.paymentStatus === PaymentStatusEnum.CONFIRMED &&
-        order.status !== OrderStatus.CANCELED
-      : false;
-    const canMarkAsPaid =
-      maybe(() => order.paymentStatus) !== undefined
-        ? [null, PaymentStatusEnum.ERROR, PaymentStatusEnum.REJECTED].includes(
-            order.paymentStatus
-          )
-        : false;
+const OrderPayment = withStyles(styles, { name: "OrderPayment" })(
+  ({
+    classes,
+    order,
+    onCapture,
+    onMarkAsPaid,
+    onRefund,
+    onVoid
+  }: OrderPaymentProps) => {
+    const canCapture = maybe(() => order.actions, []).includes(
+      OrderAction.CAPTURE
+    );
+    const canVoid = maybe(() => order.actions, []).includes(OrderAction.VOID);
+    const canRefund = maybe(() => order.actions, []).includes(
+      OrderAction.REFUND
+    );
+    const canMarkAsPaid = maybe(() => order.actions, []).includes(
+      OrderAction.MARK_AS_PAID
+    );
     const payment = transformPaymentStatus(maybe(() => order.paymentStatus));
     return (
       <Card>
@@ -88,7 +94,7 @@ const OrderPayment = decorate<OrderPaymentProps>(
                   {maybe(() => order.subtotal.gross) === undefined ? (
                     <Skeleton />
                   ) : (
-                    <Money {...order.subtotal.gross} />
+                    <Money money={order.subtotal.gross} />
                   )}
                 </td>
               </tr>
@@ -107,7 +113,7 @@ const OrderPayment = decorate<OrderPaymentProps>(
                   {maybe(() => order.total.tax) === undefined ? (
                     <Skeleton />
                   ) : (
-                    <Money {...order.total.tax} />
+                    <Money money={order.total.tax} />
                   )}
                 </td>
               </tr>
@@ -127,7 +133,7 @@ const OrderPayment = decorate<OrderPaymentProps>(
                   {maybe(() => order.shippingPrice.gross) === undefined ? (
                     <Skeleton />
                   ) : (
-                    <Money {...order.shippingPrice.gross} />
+                    <Money money={order.shippingPrice.gross} />
                   )}
                 </td>
               </tr>
@@ -138,7 +144,51 @@ const OrderPayment = decorate<OrderPaymentProps>(
                   {maybe(() => order.total.gross) === undefined ? (
                     <Skeleton />
                   ) : (
-                    <Money {...order.total.gross} />
+                    <Money money={order.total.gross} />
+                  )}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </CardContent>
+        <Hr />
+        <CardContent>
+          <table className={classes.root}>
+            <tbody>
+              <tr>
+                <td>{i18n.t("Preauthorized amount")}</td>
+                <td className={classes.textRight}>
+                  {maybe(() => order.totalAuthorized.amount) === undefined ? (
+                    <Skeleton />
+                  ) : (
+                    <Money money={order.totalAuthorized} />
+                  )}
+                </td>
+              </tr>
+              <tr>
+                <td>{i18n.t("Captured amount")}</td>
+                <td className={classes.textRight}>
+                  {maybe(() => order.totalCaptured.amount) === undefined ? (
+                    <Skeleton />
+                  ) : (
+                    <Money money={order.totalCaptured} />
+                  )}
+                </td>
+              </tr>
+              <tr className={classes.totalRow}>
+                <td>{i18n.t("Balance")}</td>
+                <td className={classes.textRight}>
+                  {maybe(
+                    () => order.total.gross.amount && order.totalCaptured.amount
+                  ) === undefined ? (
+                    <Skeleton />
+                  ) : (
+                    <Money
+                      money={subtractMoney(
+                        order.totalCaptured,
+                        order.total.gross
+                      )}
+                    />
                   )}
                 </td>
               </tr>
@@ -146,29 +196,29 @@ const OrderPayment = decorate<OrderPaymentProps>(
           </table>
         </CardContent>
         {maybe(() => order.status) !== OrderStatus.CANCELED &&
-          (canCapture || canRefund || canRelease || canMarkAsPaid) && (
+          (canCapture || canRefund || canVoid || canMarkAsPaid) && (
             <>
               <Hr />
               <CardActions>
                 {canCapture && (
-                  <Button color="secondary" variant="flat" onClick={onCapture}>
+                  <Button color="secondary" variant="text" onClick={onCapture}>
                     {i18n.t("Capture", { context: "button" })}
                   </Button>
                 )}
                 {canRefund && (
-                  <Button color="secondary" variant="flat" onClick={onRefund}>
+                  <Button color="secondary" variant="text" onClick={onRefund}>
                     {i18n.t("Refund", { context: "button" })}
                   </Button>
                 )}
-                {canRelease && (
-                  <Button color="secondary" variant="flat" onClick={onRelease}>
-                    {i18n.t("Release", { context: "button" })}
+                {canVoid && (
+                  <Button color="secondary" variant="text" onClick={onVoid}>
+                    {i18n.t("Void", { context: "button" })}
                   </Button>
                 )}
                 {canMarkAsPaid && (
                   <Button
                     color="secondary"
-                    variant="flat"
+                    variant="text"
                     onClick={onMarkAsPaid}
                   >
                     {i18n.t("Mark as paid", { context: "button" })}

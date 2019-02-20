@@ -1,5 +1,6 @@
 """Cart-related ORM models."""
 from decimal import Decimal
+from operator import attrgetter
 from uuid import uuid4
 
 from django.conf import settings
@@ -11,7 +12,7 @@ from django_prices.models import MoneyField
 from measurement.measures import Weight
 
 from ..account.models import Address
-from ..core.utils.taxes import ZERO_TAXED_MONEY
+from ..core.utils.taxes import ZERO_TAXED_MONEY, zero_money
 from ..shipping.models import ShippingMethod
 
 CENTS = Decimal('0.01')
@@ -41,7 +42,7 @@ class Cart(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, blank=True, null=True, related_name='carts',
         on_delete=models.CASCADE)
-    email = models.EmailField(blank=True, default='')
+    email = models.EmailField()
     token = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     quantity = models.PositiveIntegerField(default=0)
     billing_address = models.ForeignKey(
@@ -55,8 +56,10 @@ class Cart(models.Model):
         on_delete=models.SET_NULL)
     note = models.TextField(blank=True, default='')
     discount_amount = MoneyField(
-        currency=settings.DEFAULT_CURRENCY, max_digits=12,
-        decimal_places=settings.DEFAULT_DECIMAL_PLACES, default=0)
+        currency=settings.DEFAULT_CURRENCY,
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=zero_money)
     discount_name = models.CharField(max_length=255, blank=True, null=True)
     translated_discount_name = models.CharField(
         max_length=255, blank=True, null=True)
@@ -65,7 +68,7 @@ class Cart(models.Model):
     objects = CartQueryset.as_manager()
 
     class Meta:
-        ordering = ('-last_change',)
+        ordering = ('-last_change', )
 
     def __repr__(self):
         return 'Cart(quantity=%s)' % (self.quantity,)
@@ -109,6 +112,11 @@ class Cart(models.Model):
         matching_lines = (line for line in self if line.variant == variant)
         return next(matching_lines, None)
 
+    def get_last_active_payment(self):
+        payments = [
+            payment for payment in self.payments.all() if payment.is_active]
+        return max(payments, default=None, key=attrgetter('pk'))
+
 
 class CartLine(models.Model):
     """A single cart line.
@@ -126,6 +134,7 @@ class CartLine(models.Model):
 
     class Meta:
         unique_together = ('cart', 'variant', 'data')
+        ordering = ('id',)
 
     def __str__(self):
         return smart_str(self.variant)

@@ -1,11 +1,17 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
-import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentStatusEnum, OrderStatus } from "./../../types/globalTypes";
+import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentChargeStatusEnum, OrderStatus, OrderAction } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL mutation operation: OrderCancel
 // ====================================================
+
+export interface OrderCancel_orderCancel_errors {
+  __typename: "Error";
+  field: string | null;
+  message: string | null;
+}
 
 export interface OrderCancel_orderCancel_order_billingAddress_country {
   __typename: "CountryDisplay";
@@ -47,56 +53,47 @@ export interface OrderCancel_orderCancel_order_events {
   user: OrderCancel_orderCancel_order_events_user | null;
 }
 
-export interface OrderCancel_orderCancel_order_fulfillments_lines_edges_node_orderLine_unitPrice_gross {
+export interface OrderCancel_orderCancel_order_fulfillments_lines_orderLine_unitPrice_gross {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderCancel_orderCancel_order_fulfillments_lines_edges_node_orderLine_unitPrice_net {
+export interface OrderCancel_orderCancel_order_fulfillments_lines_orderLine_unitPrice_net {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderCancel_orderCancel_order_fulfillments_lines_edges_node_orderLine_unitPrice {
+export interface OrderCancel_orderCancel_order_fulfillments_lines_orderLine_unitPrice {
   __typename: "TaxedMoney";
-  gross: OrderCancel_orderCancel_order_fulfillments_lines_edges_node_orderLine_unitPrice_gross;
-  net: OrderCancel_orderCancel_order_fulfillments_lines_edges_node_orderLine_unitPrice_net;
+  gross: OrderCancel_orderCancel_order_fulfillments_lines_orderLine_unitPrice_gross;
+  net: OrderCancel_orderCancel_order_fulfillments_lines_orderLine_unitPrice_net;
 }
 
-export interface OrderCancel_orderCancel_order_fulfillments_lines_edges_node_orderLine {
+export interface OrderCancel_orderCancel_order_fulfillments_lines_orderLine {
   __typename: "OrderLine";
   id: string;
+  isShippingRequired: boolean;
   productName: string;
   productSku: string;
   quantity: number;
   quantityFulfilled: number;
-  unitPrice: OrderCancel_orderCancel_order_fulfillments_lines_edges_node_orderLine_unitPrice | null;
+  unitPrice: OrderCancel_orderCancel_order_fulfillments_lines_orderLine_unitPrice | null;
   thumbnailUrl: string | null;
 }
 
-export interface OrderCancel_orderCancel_order_fulfillments_lines_edges_node {
+export interface OrderCancel_orderCancel_order_fulfillments_lines {
   __typename: "FulfillmentLine";
   id: string;
   quantity: number;
-  orderLine: OrderCancel_orderCancel_order_fulfillments_lines_edges_node_orderLine;
-}
-
-export interface OrderCancel_orderCancel_order_fulfillments_lines_edges {
-  __typename: "FulfillmentLineCountableEdge";
-  node: OrderCancel_orderCancel_order_fulfillments_lines_edges_node;
-}
-
-export interface OrderCancel_orderCancel_order_fulfillments_lines {
-  __typename: "FulfillmentLineCountableConnection";
-  edges: OrderCancel_orderCancel_order_fulfillments_lines_edges[];
+  orderLine: OrderCancel_orderCancel_order_fulfillments_lines_orderLine | null;
 }
 
 export interface OrderCancel_orderCancel_order_fulfillments {
   __typename: "Fulfillment";
   id: string;
-  lines: OrderCancel_orderCancel_order_fulfillments_lines | null;
+  lines: (OrderCancel_orderCancel_order_fulfillments_lines | null)[] | null;
   fulfillmentOrder: number;
   status: FulfillmentStatus;
   trackingNumber: string;
@@ -123,6 +120,7 @@ export interface OrderCancel_orderCancel_order_lines_unitPrice {
 export interface OrderCancel_orderCancel_order_lines {
   __typename: "OrderLine";
   id: string;
+  isShippingRequired: boolean;
   productName: string;
   productSku: string;
   quantity: number;
@@ -233,12 +231,14 @@ export interface OrderCancel_orderCancel_order {
   __typename: "Order";
   id: string;
   billingAddress: OrderCancel_orderCancel_order_billingAddress | null;
+  canFinalize: boolean;
   created: any;
+  customerNote: string;
   events: (OrderCancel_orderCancel_order_events | null)[] | null;
   fulfillments: (OrderCancel_orderCancel_order_fulfillments | null)[];
   lines: (OrderCancel_orderCancel_order_lines | null)[];
   number: string | null;
-  paymentStatus: PaymentStatusEnum | null;
+  paymentStatus: PaymentChargeStatusEnum | null;
   shippingAddress: OrderCancel_orderCancel_order_shippingAddress | null;
   shippingMethod: OrderCancel_orderCancel_order_shippingMethod | null;
   shippingMethodName: string | null;
@@ -246,6 +246,7 @@ export interface OrderCancel_orderCancel_order {
   status: OrderStatus;
   subtotal: OrderCancel_orderCancel_order_subtotal | null;
   total: OrderCancel_orderCancel_order_total | null;
+  actions: (OrderAction | null)[];
   totalAuthorized: OrderCancel_orderCancel_order_totalAuthorized | null;
   totalCaptured: OrderCancel_orderCancel_order_totalCaptured | null;
   user: OrderCancel_orderCancel_order_user | null;
@@ -255,6 +256,7 @@ export interface OrderCancel_orderCancel_order {
 
 export interface OrderCancel_orderCancel {
   __typename: "OrderCancel";
+  errors: OrderCancel_orderCancel_errors[] | null;
   order: OrderCancel_orderCancel_order | null;
 }
 

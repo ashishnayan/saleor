@@ -34,11 +34,11 @@ import {
   OrderFulfillmentUpdateTracking,
   OrderFulfillmentUpdateTrackingVariables
 } from "./types/OrderFulfillmentUpdateTracking";
-import { OrderLineAdd, OrderLineAddVariables } from "./types/OrderLineAdd";
 import {
   OrderLineDelete,
   OrderLineDeleteVariables
 } from "./types/OrderLineDelete";
+import { OrderLinesAdd, OrderLinesAddVariables } from "./types/OrderLinesAdd";
 import {
   OrderLineUpdate,
   OrderLineUpdateVariables
@@ -48,17 +48,21 @@ import {
   OrderMarkAsPaidVariables
 } from "./types/OrderMarkAsPaid";
 import { OrderRefund, OrderRefundVariables } from "./types/OrderRefund";
-import { OrderRelease, OrderReleaseVariables } from "./types/OrderRelease";
 import {
   OrderShippingMethodUpdate,
   OrderShippingMethodUpdateVariables
 } from "./types/OrderShippingMethodUpdate";
 import { OrderUpdate, OrderUpdateVariables } from "./types/OrderUpdate";
+import { OrderVoid, OrderVoidVariables } from "./types/OrderVoid";
 
 const orderCancelMutation = gql`
   ${fragmentOrderDetails}
   mutation OrderCancel($id: ID!, $restock: Boolean!) {
     orderCancel(id: $id, restock: $restock) {
+      errors {
+        field
+        message
+      }
       order {
         ...OrderDetailsFragment
       }
@@ -74,6 +78,10 @@ const orderDraftCancelMutation = gql`
   ${fragmentOrderDetails}
   mutation OrderDraftCancel($id: ID!) {
     draftOrderDelete(id: $id) {
+      errors {
+        field
+        message
+      }
       order {
         ...OrderDetailsFragment
       }
@@ -123,20 +131,24 @@ export const TypedOrderRefundMutation = TypedMutation<
   OrderRefundVariables
 >(orderRefundMutation);
 
-const orderReleaseMutation = gql`
+const orderVoidMutation = gql`
   ${fragmentOrderDetails}
-  mutation OrderRelease($id: ID!) {
-    orderRelease(id: $id) {
+  mutation OrderVoid($id: ID!) {
+    orderVoid(id: $id) {
+      errors {
+        field
+        message
+      }
       order {
         ...OrderDetailsFragment
       }
     }
   }
 `;
-export const TypedOrderReleaseMutation = TypedMutation<
-  OrderRelease,
-  OrderReleaseVariables
->(orderReleaseMutation);
+export const TypedOrderVoidMutation = TypedMutation<
+  OrderVoid,
+  OrderVoidVariables
+>(orderVoidMutation);
 
 const orderMarkAsPaidMutation = gql`
   ${fragmentOrderDetails}
@@ -349,6 +361,10 @@ export const TypedOrderShippingMethodUpdateMutation = TypedMutation<
 const orderDraftCreateMutation = gql`
   mutation OrderDraftCreate {
     draftOrderCreate(input: {}) {
+      errors {
+        field
+        message
+      }
       order {
         id
       }
@@ -379,10 +395,10 @@ export const TypedOrderLineDeleteMutation = TypedMutation<
   OrderLineDeleteVariables
 >(orderLineDeleteMutation);
 
-const orderLineAddMutation = gql`
+const orderLinesAddMutation = gql`
   ${fragmentOrderDetails}
-  mutation OrderLineAdd($id: ID!, $input: OrderLineCreateInput!) {
-    draftOrderLineCreate(id: $id, input: $input) {
+  mutation OrderLinesAdd($id: ID!, $input: [OrderLineCreateInput]!) {
+    draftOrderLinesCreate(id: $id, input: $input) {
       errors {
         field
         message
@@ -393,10 +409,10 @@ const orderLineAddMutation = gql`
     }
   }
 `;
-export const TypedOrderLineAddMutation = TypedMutation<
-  OrderLineAdd,
-  OrderLineAddVariables
->(orderLineAddMutation);
+export const TypedOrderLinesAddMutation = TypedMutation<
+  OrderLinesAdd,
+  OrderLinesAddVariables
+>(orderLinesAddMutation);
 
 const orderLineUpdateMutation = gql`
   ${fragmentOrderDetails}

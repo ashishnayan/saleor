@@ -11,8 +11,8 @@ export interface PageUpdate_pageUpdate_page {
   slug: string;
   title: string;
   content: string;
-  isVisible: boolean;
-  availableOn: any | null;
+  isPublished: boolean;
+  publicationDate: any | null;
 }
 
 export interface PageUpdate_pageUpdate_errors {
@@ -24,7 +24,7 @@ export interface PageUpdate_pageUpdate_errors {
 export interface PageUpdate_pageUpdate {
   __typename: "PageUpdate";
   page: PageUpdate_pageUpdate_page | null;
-  errors: (PageUpdate_pageUpdate_errors | null)[] | null;
+  errors: PageUpdate_pageUpdate_errors[] | null;
 }
 
 export interface PageUpdate {
@@ -36,6 +36,6 @@ export interface PageUpdateVariables {
   title: string;
   content: string;
   slug: string;
-  isVisible: boolean;
-  availableOn?: string | null;
+  isPublished: boolean;
+  publicationDate?: string | null;
 }

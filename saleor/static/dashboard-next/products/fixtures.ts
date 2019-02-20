@@ -1,17 +1,40 @@
-export const product = (placeholderImage: string) => ({
+import { ProductDetails_product } from "./types/ProductDetails";
+import { ProductVariant } from "./types/ProductVariant";
+import { ProductVariantCreateData_product } from "./types/ProductVariantCreateData";
+
+export const product: (
+  placeholderImage: string
+) => ProductDetails_product &
+  ProductVariantCreateData_product = placeholderImage => ({
+  __typename: "Product",
   attributes: [
     {
+      __typename: "SelectedAttribute",
       attribute: {
+        __typename: "Attribute",
         id: "pta18161",
         name: "Borders",
         slug: "Borders",
         sortNumber: 0,
         values: [
-          { id: "ptav47282", sortNumber: 0, name: "portals", slug: "portals" },
-          { id: "ptav17253", sortNumber: 1, name: "Baht", slug: "Baht" }
+          {
+            __typename: "AttributeValue",
+            id: "ptav47282",
+            name: "portals",
+            slug: "portals",
+            sortNumber: 0
+          },
+          {
+            __typename: "AttributeValue",
+            id: "ptav17253",
+            name: "Baht",
+            slug: "Baht",
+            sortNumber: 1
+          }
         ]
       },
       value: {
+        __typename: "AttributeValue",
         id: "ptav47282",
         name: "portals",
         slug: "portals",
@@ -19,24 +42,46 @@ export const product = (placeholderImage: string) => ({
       }
     },
     {
+      __typename: "SelectedAttribute",
       attribute: {
+        __typename: "Attribute",
         id: "pta22785",
         name: "Legacy",
         slug: "Legacy",
         sortNumber: 1,
         values: [
-          { id: "ptav31282", sortNumber: 0, name: "payment", slug: "payment" },
           {
+            __typename: "AttributeValue",
+            id: "ptav31282",
+            name: "payment",
+            slug: "payment",
+            sortNumber: 0
+          },
+          {
+            __typename: "AttributeValue",
             id: "ptav14907",
             name: "Auto Loan Account",
             slug: "Auto-Loan-Account",
             sortNumber: 1
           },
-          { id: "ptav27366", sortNumber: 2, name: "Garden", slug: "Garden" },
-          { id: "ptav11873", sortNumber: 3, name: "override", slug: "override" }
+          {
+            __typename: "AttributeValue",
+            id: "ptav27366",
+            name: "Garden",
+            slug: "Garden",
+            sortNumber: 2
+          },
+          {
+            __typename: "AttributeValue",
+            id: "ptav11873",
+            name: "override",
+            slug: "override",
+            sortNumber: 3
+          }
         ]
       },
       value: {
+        __typename: "AttributeValue",
         id: "ptav14907",
         name: "Auto Loan Account",
         slug: "Auto-Loan-Account",
@@ -44,65 +89,100 @@ export const product = (placeholderImage: string) => ({
       }
     }
   ],
-  availability: { available: false },
-  availableOn: "2018-08-25T18:45:54.125Z",
-  category: { id: "Q2F0ZWdvcnk6MQ==", name: "Apparel" },
-  collections: {
-    edges: [{ node: { id: "Q29sbGVjdGlvbjoy", name: "Winter sale" } }]
+  availability: {
+    __typename: "ProductAvailability",
+    available: false,
+    priceRange: {
+      __typename: "TaxedMoneyRange",
+      start: {
+        __typename: "TaxedMoney",
+        gross: {
+          __typename: "Money",
+          amount: 12.3,
+          currency: "USD"
+        },
+        net: {
+          __typename: "Money",
+          amount: 10,
+          currency: "USD"
+        }
+      },
+      stop: {
+        __typename: "TaxedMoney",
+        gross: {
+          __typename: "Money",
+          amount: 24.6,
+          currency: "USD"
+        },
+        net: {
+          __typename: "Money",
+          amount: 20,
+          currency: "USD"
+        }
+      }
+    }
   },
+  category: { __typename: "Category", id: "Q2F0ZWdvcnk6MQ==", name: "Apparel" },
+  chargeTaxes: true,
+  collections: [
+    {
+      __typename: "Collection",
+      id: "Q29sbGVjdGlvbjoy",
+      name: "Winter sale"
+    }
+  ],
   description:
     "Omnis rerum ea. Fugit dignissimos modi est rerum. Qui corrupti expedita et. Dolorem dolorum illo doloremque. Officia perspiciatis facilis ab maxime voluptatem eligendi ipsam. Quisquam impedit repudiandae eos. Id sit dolores adipisci qui omnis dolores qui. Illo deleniti mollitia perspiciatis.",
   id: "p10171",
-  images: {
-    edges: [
-      {
-        node: {
-          alt: "Id sit dolores adipisci",
-          id: "UHJvZHVjdEltYWdlOjE=",
-          sortOrder: 0,
-          url: placeholderImage
-        }
-      },
-      {
-        node: {
-          alt: "Id sit dolores adipisci",
-          id: "UHJvZHVjdEltYWdlOaE=",
-          sortOrder: 2,
-          url: placeholderImage
-        }
-      },
-      {
-        node: {
-          alt: "Id sit dolores adipisci",
-          id: "UPJvZHVjdEltYWdlOjV=",
-          sortOrder: 1,
-          url: placeholderImage
-        }
-      },
-      {
-        node: {
-          alt: "Id sit dolores adipisci",
-          id: "UHJvZHVjdEltYHdlOjX=",
-          sortOrder: 3,
-          url: placeholderImage
-        }
-      },
-      {
-        node: {
-          alt: "Id sit dolores adipisci",
-          id: "UHJvZHVjdIlnYWdlOjX=",
-          sortOrder: 4,
-          url: placeholderImage
-        }
-      }
-    ]
-  },
+  images: [
+    {
+      __typename: "ProductImage",
+      alt: "Id sit dolores adipisci",
+      id: "UHJvZHVjdEltYWdlOjE=",
+      sortOrder: 0,
+      url: placeholderImage
+    },
+    {
+      __typename: "ProductImage",
+      alt: "Id sit dolores adipisci",
+      id: "UHJvZHVjdEltYWdlOaE=",
+      sortOrder: 2,
+      url: placeholderImage
+    },
+    {
+      __typename: "ProductImage",
+      alt: "Id sit dolores adipisci",
+      id: "UPJvZHVjdEltYWdlOjV=",
+      sortOrder: 1,
+      url: placeholderImage
+    },
+    {
+      __typename: "ProductImage",
+      alt: "Id sit dolores adipisci",
+      id: "UHJvZHVjdEltYHdlOjX=",
+      sortOrder: 3,
+      url: placeholderImage
+    },
+    {
+      __typename: "ProductImage",
+      alt: "Id sit dolores adipisci",
+      id: "UHJvZHVjdIlnYWdlOjX=",
+      sortOrder: 4,
+      url: placeholderImage
+    }
+  ],
   isFeatured: false,
   isPublished: true,
-  margin: { start: 2, stop: 7 },
+  margin: { __typename: "Margin", start: 2, stop: 7 },
   name: "Ergonomic Plastic Bacon",
-  price: { currency: "NZD", amount: 339.39, localized: "339.39 NZD" },
+  price: {
+    __typename: "Money",
+    amount: 339.39,
+    currency: "NZD",
+    localized: "339.39 NZD"
+  },
   productType: {
+    __typename: "ProductType",
     hasVariants: true,
     id: "pt76406",
     name: "Versatile",
@@ -110,93 +190,103 @@ export const product = (placeholderImage: string) => ({
     seoTitle: "Ergonomic Plastic Bacon",
     variantAttributes: [
       {
+        __typename: "Attribute",
         id: "pta18161",
         name: "Color",
         slug: "color",
-        sortNumber: 0,
+        sortOrder: 0,
         values: [
-          { id: "ptvav47282", sortNumber: 0, name: "Black", slug: "black" },
-          { id: "ptvav17253", sortNumber: 1, name: "White", slug: "white" }
+          {
+            __typename: "AttributeValue",
+            id: "ptvav47282",
+            name: "Black",
+            slug: "black",
+            sortOrder: 0
+          },
+          {
+            __typename: "AttributeValue",
+            id: "ptvav17253",
+            name: "White",
+            slug: "white",
+            sortOrder: 1
+          }
         ]
       }
     ]
   },
+  publicationDate: "2018-08-25T18:45:54.125Z",
   purchaseCost: {
-    start: { currency: "NZD", amount: 339.39, localized: "339.39 NZD" },
-    stop: { currency: "NZD", amount: 678.78, localized: "678.78 NZD" }
+    __typename: "MoneyRange",
+    start: {
+      __typename: "Money",
+      amount: 339.39,
+      currency: "NZD",
+      localized: "339.39 NZD"
+    },
+    stop: {
+      __typename: "Money",
+      amount: 678.78,
+      currency: "NZD",
+      localized: "678.78 NZD"
+    }
   },
+  seoDescription: "Seo description",
+  seoTitle: "Seo title",
   sku: "59661-34207",
-  thumbnailUrl: placeholderImage,
+  thumbnail: { __typename: "Image", url: placeholderImage },
   url: "/example-url",
-  variants: {
-    edges: [
-      {
-        node: {
-          id: "pv75934",
-          image: {
-            edges: [
-              {
-                node: {
-                  url: placeholderImage
-                }
-              }
-            ]
-          },
-          images: {
-            edges: [
-              {
-                node: {
-                  url: placeholderImage
-                }
-              },
-              {
-                node: {
-                  url: placeholderImage
-                }
-              }
-            ]
-          },
-          margin: 2,
-          name: "Cordoba Oro",
-          priceOverride: {
-            amount: 678.78,
-            currency: "USD",
-            localized: "678.78 USD"
-          },
-          sku: "87192-94370",
-          stockQuantity: 48
+  variants: [
+    {
+      __typename: "ProductVariant",
+      id: "pv75934",
+      images: [
+        {
+          __typename: "ProductImage",
+          id: "pi92837",
+          url: placeholderImage
+        },
+        {
+          __typename: "ProductImage",
+          id: "pi92838",
+          url: placeholderImage
         }
+      ],
+      margin: 2,
+      name: "Cordoba Oro",
+      priceOverride: {
+        __typename: "Money",
+        amount: 678.78,
+        currency: "USD"
       },
-      {
-        node: {
-          id: "pv68615",
-          image: {
-            edges: [
-              {
-                node: {
-                  url: placeholderImage
-                }
-              }
-            ]
-          },
-          images: {
-            edges: [
-              {
-                node: {
-                  url: placeholderImage
-                }
-              }
-            ]
-          },
-          margin: 7,
-          name: "silver",
-          priceOverride: null,
-          sku: "69055-15190",
-          stockQuantity: 14
+      quantity: 12,
+      quantityAllocated: 1,
+      sku: "87192-94370",
+      stockQuantity: 48
+    },
+    {
+      __typename: "ProductVariant",
+      id: "pv68615",
+      images: [
+        {
+          __typename: "ProductImage",
+          id: "pi81234",
+          url: placeholderImage
+        },
+        {
+          __typename: "ProductImage",
+          id: "pi1236912",
+          url: placeholderImage
         }
-      }
-    ]
-  }
+      ],
+      margin: 7,
+      name: "silver",
+      priceOverride: null,
+      quantity: 12,
+      quantityAllocated: 1,
+      sku: "69055-15190",
+      stockQuantity: 14
+    }
+  ]
 });
 export const products = (placeholderImage: string) => [
   {
@@ -317,7 +407,6 @@ export const products = (placeholderImage: string) => [
       }
     ],
     availability: { available: true },
-    availableOn: null,
     category: { id: "Q2F0ZWdvcnk6MQ==", name: "Apparel" },
     collections: {
       edges: [{ node: { id: "Q29sbGVjdGlvbjoy", name: "Winter sale" } }]
@@ -347,6 +436,7 @@ export const products = (placeholderImage: string) => [
       id: "pt41284",
       name: "Awesome Wooden Pizza"
     },
+    publicationDate: null,
     purchaseCost: {
       start: { amount: 274.99389477595827, currency: "XAG" },
       stop: { amount: 274.99389477595827, currency: "XAG" }
@@ -355,7 +445,7 @@ export const products = (placeholderImage: string) => [
       "Autem odit tempora nesciunt quaerat enim reprehenderit eius. Excepturi nemo quos veritatis laboriosam aperiam atque natus soluta",
     seoTitle: "Generic Rubber Pants",
     sku: "57599-97473",
-    thumbnailUrl: placeholderImage,
+    thumbnail: { __typename: "Image", url: placeholderImage },
     variants: {
       edges: [
         {
@@ -478,7 +568,6 @@ export const products = (placeholderImage: string) => [
       }
     ],
     availability: { available: true },
-    availableOn: null,
     category: { id: "Q2F0ZWdvcnk6MQ==", name: "Apparel" },
     collections: {
       edges: [{ node: { id: "Q29sbGVjdGlvbjoy", name: "Winter sale" } }]
@@ -504,6 +593,7 @@ export const products = (placeholderImage: string) => [
     name: "Handcrafted Wooden Towels",
     price: { amount: 432.2991706153576, currency: "ZWL" },
     productType: { hasVariants: false, id: "pt29020", name: "Future" },
+    publicationDate: null,
     purchaseCost: {
       start: { amount: 432.2991706153576, currency: "ZWL" },
       stop: { amount: 8213.684241691793, currency: "ZWL" }
@@ -511,7 +601,7 @@ export const products = (placeholderImage: string) => [
     seoDescription: "enim est recusandae soluta aperiam",
     seoTitle: "Handcrafted Wooden Towels",
     sku: "6526-89350",
-    thumbnailUrl: placeholderImage,
+    thumbnail: { __typename: "Image", url: placeholderImage },
     variants: {
       edges: [
         {
@@ -675,7 +765,6 @@ export const products = (placeholderImage: string) => [
       }
     ],
     availability: { available: false },
-    availableOn: null,
     category: { id: "Q2F0ZWdvcnk6MQ==", name: "Apparel" },
     collections: {
       edges: [{ node: { id: "Q29sbGVjdGlvbjoy", name: "Winter sale" } }]
@@ -701,6 +790,7 @@ export const products = (placeholderImage: string) => [
     name: "Handcrafted Metal Cheese",
     price: { amount: 688.3543328975433, currency: "XDR" },
     productType: { hasVariants: true, id: "pt23508", name: "SMS" },
+    publicationDate: null,
     purchaseCost: {
       start: { amount: 688.3543328975433, currency: "XDR" },
       stop: { amount: 3441.7716644877164, currency: "XDR" }
@@ -708,7 +798,7 @@ export const products = (placeholderImage: string) => [
     seoDescription: "quas minima error repudiandae corrupti",
     seoTitle: "Handcrafted Metal Cheese",
     sku: "9937-5954",
-    thumbnailUrl: placeholderImage,
+    thumbnail: { __typename: "Image", url: placeholderImage },
     variants: {
       edges: [
         {
@@ -883,7 +973,6 @@ export const products = (placeholderImage: string) => [
       }
     ],
     availability: { available: false },
-    availableOn: null,
     category: { id: "Q2F0ZWdvcnk6MQ==", name: "Apparel" },
     collections: {
       edges: [{ node: { id: "Q29sbGVjdGlvbjoy", name: "Winter sale" } }]
@@ -909,6 +998,7 @@ export const products = (placeholderImage: string) => [
     name: "Refined Rubber Keyboard",
     price: { amount: 540.3817687240911, currency: "SLL" },
     productType: { hasVariants: false, id: "pt20625", name: "Virtual" },
+    publicationDate: null,
     purchaseCost: {
       start: { amount: 540.3817687240911, currency: "SLL" },
       stop: { amount: 4863.43591851682, currency: "SLL" }
@@ -917,7 +1007,7 @@ export const products = (placeholderImage: string) => [
       "Veniam quasi temporibus ab similique. Praesentium vero repudiandae",
     seoTitle: "Awesome Granite Car",
     sku: "96777-48145",
-    thumbnailUrl: placeholderImage,
+    thumbnail: { __typename: "Image", url: placeholderImage },
     variants: {
       edges: [
         {
@@ -1100,7 +1190,6 @@ export const products = (placeholderImage: string) => [
       }
     ],
     availability: { available: true },
-    availableOn: null,
     category: { id: "Q2F0ZWdvcnk6MQ==", name: "Apparel" },
     collections: {
       edges: [{ node: { id: "Q29sbGVjdGlvbjoy", name: "Winter sale" } }]
@@ -1126,6 +1215,7 @@ export const products = (placeholderImage: string) => [
     name: "Gorgeous Metal Gloves",
     price: { amount: 4.359138839276078, currency: "AMD" },
     productType: { hasVariants: true, id: "pt91547", name: "Vermont" },
+    publicationDate: null,
     purchaseCost: {
       start: { amount: 4.359138839276078, currency: "AMD" },
       stop: { amount: 74.10536026769333, currency: "AMD" }
@@ -1134,7 +1224,7 @@ export const products = (placeholderImage: string) => [
       "Minima quaerat error incidunt qui quis vitae maxime. Est ab et",
     seoTitle: "Gorgeous Metal Gloves",
     sku: "60799-40023",
-    thumbnailUrl: placeholderImage,
+    thumbnail: { __typename: "Image", url: placeholderImage },
     variants: {
       edges: [
         {
@@ -1356,7 +1446,6 @@ export const products = (placeholderImage: string) => [
       }
     ],
     availability: { available: false },
-    availableOn: null,
     category: { id: "Q2F0ZWdvcnk6MQ==", name: "Apparel" },
     collections: {
       edges: [{ node: { id: "Q29sbGVjdGlvbjoy", name: "Winter sale" } }]
@@ -1382,6 +1471,7 @@ export const products = (placeholderImage: string) => [
     name: "Small Cotton Shirt",
     price: { amount: 538.0974149450597, currency: "GMD" },
     productType: { hasVariants: false, id: "pt69941", name: "Gorgeous" },
+    publicationDate: null,
     purchaseCost: {
       start: { amount: 538.0974149450597, currency: "GMD" },
       stop: { amount: 6457.168979340716, currency: "GMD" }
@@ -1390,7 +1480,7 @@ export const products = (placeholderImage: string) => [
       "Esse quia voluptates veniam eveniet. Velit laborum possimus eveniet consequuntur magnam eveniet provident et voluptatem",
     seoTitle: "Unbranded Rubber Ball",
     sku: "2840-48373",
-    thumbnailUrl: placeholderImage,
+    thumbnail: { __typename: "Image", url: placeholderImage },
     variants: {
       edges: [
         {
@@ -1551,7 +1641,6 @@ export const products = (placeholderImage: string) => [
       }
     ],
     availability: { available: false },
-    availableOn: null,
     category: { id: "Q2F0ZWdvcnk6MQ==", name: "Apparel" },
     collections: {
       edges: [{ node: { id: "Q29sbGVjdGlvbjoy", name: "Winter sale" } }]
@@ -1577,6 +1666,7 @@ export const products = (placeholderImage: string) => [
     name: "Fantastic Cotton Tuna",
     price: { amount: 56.90596710694962, currency: "CVE" },
     productType: { hasVariants: true, id: "pt41677", name: "TCP" },
+    publicationDate: null,
     purchaseCost: {
       start: { amount: 56.90596710694962, currency: "CVE" },
       stop: { amount: 227.62386842779847, currency: "CVE" }
@@ -1585,7 +1675,7 @@ export const products = (placeholderImage: string) => [
       "Sed tempore autem voluptas voluptas aut sit et. Molestiae rem quo cupiditate consectetur",
     seoTitle: "Fantastic Cotton Tuna",
     sku: "63913-27946",
-    thumbnailUrl: placeholderImage,
+    thumbnail: { __typename: "Image", url: placeholderImage },
     variants: {
       edges: [
         {
@@ -1660,7 +1750,6 @@ export const products = (placeholderImage: string) => [
       }
     ],
     availability: { available: false },
-    availableOn: null,
     category: { id: "Q2F0ZWdvcnk6MQ==", name: "Apparel" },
     collections: {
       edges: [{ node: { id: "Q29sbGVjdGlvbjoy", name: "Winter sale" } }]
@@ -1686,6 +1775,7 @@ export const products = (placeholderImage: string) => [
     name: "Tasty Steel Pants",
     price: { amount: 981.0598640464501, currency: "XAG" },
     productType: { hasVariants: true, id: "pt93233", name: "Buckinghamshire" },
+    publicationDate: null,
     purchaseCost: {
       start: { amount: 981.0598640464501, currency: "XAG" },
       stop: { amount: 16678.017688789652, currency: "XAG" }
@@ -1694,7 +1784,7 @@ export const products = (placeholderImage: string) => [
       "Voluptatem veniam aut rerum. Illum veniam asperiores ut et iusto enim vel sapiente quia",
     seoTitle: "Tasty Steel Pants",
     sku: "4110-47925",
-    thumbnailUrl: placeholderImage,
+    thumbnail: { __typename: "Image", url: placeholderImage },
     variants: {
       edges: [
         {
@@ -1867,7 +1957,6 @@ export const products = (placeholderImage: string) => [
       }
     ],
     availability: { available: true },
-    availableOn: null,
     category: { id: "Q2F0ZWdvcnk6MQ==", name: "Apparel" },
     collections: {
       edges: [{ node: { id: "Q29sbGVjdGlvbjoy", name: "Winter sale" } }]
@@ -1893,6 +1982,7 @@ export const products = (placeholderImage: string) => [
     name: "Ergonomic Cotton Shoes",
     price: { amount: 449.93166054829857, currency: "WST" },
     productType: { hasVariants: true, id: "pt53386", name: "Jewelery" },
+    publicationDate: null,
     purchaseCost: {
       start: { amount: 449.93166054829857, currency: "WST" },
       stop: { amount: 4949.248266031284, currency: "WST" }
@@ -1901,7 +1991,7 @@ export const products = (placeholderImage: string) => [
       "Sapiente qui error. Placeat hic nulla repudiandae delectus et",
     seoTitle: "Ergonomic Cotton Shoes",
     sku: "9207-4523",
-    thumbnailUrl: placeholderImage,
+    thumbnail: { __typename: "Image", url: placeholderImage },
     variants: {
       edges: [
         {
@@ -1999,7 +2089,6 @@ export const products = (placeholderImage: string) => [
       }
     ],
     availability: { available: false },
-    availableOn: null,
     category: { id: "Q2F0ZWdvcnk6MQ==", name: "Apparel" },
     collections: {
       edges: [{ node: { id: "Q29sbGVjdGlvbjoy", name: "Winter sale" } }]
@@ -2025,6 +2114,7 @@ export const products = (placeholderImage: string) => [
     name: "Unbranded Steel Tuna",
     price: { amount: 590.5928694420302, currency: "MGA" },
     productType: { hasVariants: true, id: "pt48315", name: "Agent" },
+    publicationDate: null,
     purchaseCost: {
       start: { amount: 590.5928694420302, currency: "MGA" },
       stop: { amount: 590.5928694420302, currency: "MGA" }
@@ -2032,7 +2122,7 @@ export const products = (placeholderImage: string) => [
     seoDescription: "adipisci laboriosam autem vel soluta",
     seoTitle: "Unbranded Steel Tuna",
     sku: "84653-71539",
-    thumbnailUrl: placeholderImage,
+    thumbnail: { __typename: "Image", url: placeholderImage },
     variants: {
       edges: [
         {
@@ -2089,207 +2179,246 @@ export const products = (placeholderImage: string) => [
     }
   }
 ];
-export const variant = (placeholderImage: string) => ({
+export const variant = (placeholderImage: string): ProductVariant => ({
+  __typename: "ProductVariant",
   attributes: [
     {
+      __typename: "SelectedAttribute",
       attribute: {
+        __typename: "Attribute",
         id: "pta18161",
         name: "Borders",
         slug: "Borders",
-        sortNumber: 0,
         values: [
-          { id: "ptav47282", sortNumber: 0, name: "portals", slug: "portals" },
-          { id: "ptav17253", sortNumber: 1, name: "Baht", slug: "Baht" }
+          {
+            __typename: "AttributeValue",
+            id: "ptav47282",
+            name: "portals",
+            slug: "portals"
+          },
+          {
+            __typename: "AttributeValue",
+            id: "ptav17253",
+            name: "Baht",
+            slug: "Baht"
+          }
         ]
       },
       value: {
+        __typename: "AttributeValue",
         id: "ptav47282",
         name: "portals",
-        slug: "portals",
-        sortNumber: 0
+        slug: "portals"
       }
     },
     {
+      __typename: "SelectedAttribute",
       attribute: {
+        __typename: "Attribute",
         id: "pta22785",
         name: "Legacy",
         slug: "Legacy",
-        sortNumber: 1,
         values: [
-          { id: "ptav31282", sortNumber: 0, name: "payment", slug: "payment" },
           {
+            __typename: "AttributeValue",
+            id: "ptav31282",
+            name: "payment",
+            slug: "payment"
+          },
+          {
+            __typename: "AttributeValue",
             id: "ptav14907",
             name: "Auto Loan Account",
-            slug: "Auto-Loan-Account",
-            sortNumber: 1
+            slug: "Auto-Loan-Account"
           },
-          { id: "ptav27366", sortNumber: 2, name: "Garden", slug: "Garden" },
-          { id: "ptav11873", sortNumber: 3, name: "override", slug: "override" }
+          {
+            __typename: "AttributeValue",
+            id: "ptav27366",
+            name: "Garden",
+            slug: "Garden"
+          },
+          {
+            __typename: "AttributeValue",
+            id: "ptav11873",
+            name: "override",
+            slug: "override"
+          }
         ]
       },
       value: {
+        __typename: "AttributeValue",
         id: "ptav14907",
         name: "Auto Loan Account",
-        slug: "Auto-Loan-Account",
-        sortNumber: 1
+        slug: "Auto-Loan-Account"
       }
     }
   ],
+  costPrice: {
+    __typename: "Money",
+    amount: 12,
+    currency: "USD"
+  },
   id: "var1",
-  images: {
-    edges: [
+  images: [
+    {
+      __typename: "ProductImage",
+      id: "img1",
+      url: placeholderImage
+    },
+    {
+      __typename: "ProductImage",
+      id: "img2",
+      url: placeholderImage
+    },
+    {
+      __typename: "ProductImage",
+      id: "img7",
+      url: placeholderImage
+    },
+    {
+      __typename: "ProductImage",
+      id: "img8",
+      url: placeholderImage
+    }
+  ],
+  name: "Extended Hard",
+  priceOverride: {
+    __typename: "Money",
+    amount: 100,
+    currency: "USD"
+  },
+  product: {
+    __typename: "Product",
+    id: "prod1",
+    images: [
       {
-        node: {
-          id: "img1"
-        }
+        __typename: "ProductImage",
+        alt: "Front",
+        id: "img1",
+        sortOrder: 1,
+        url: placeholderImage
       },
       {
-        node: {
-          id: "img2"
-        }
+        __typename: "ProductImage",
+        alt: "Back",
+        id: "img2",
+        sortOrder: 4,
+        url: placeholderImage
       },
       {
-        node: {
-          id: "img7"
-        }
+        __typename: "ProductImage",
+        alt: "Right side",
+        id: "img3",
+        sortOrder: 2,
+        url: placeholderImage
       },
       {
-        node: {
-          id: "img8"
-        }
+        __typename: "ProductImage",
+        alt: "Left side",
+        id: "img4",
+        sortOrder: 3,
+        url: placeholderImage
+      },
+      {
+        __typename: "ProductImage",
+        alt: "Paper",
+        id: "img5",
+        sortOrder: 0,
+        url: placeholderImage
+      },
+      {
+        __typename: "ProductImage",
+        alt: "Hard cover",
+        id: "img6",
+        sortOrder: 1,
+        url: placeholderImage
+      },
+      {
+        __typename: "ProductImage",
+        alt: "Extended version",
+        id: "img7",
+        sortOrder: 0,
+        url: placeholderImage
+      },
+      {
+        __typename: "ProductImage",
+        alt: "Cut version",
+        id: "img8",
+        sortOrder: 2,
+        url: placeholderImage
+      },
+      {
+        __typename: "ProductImage",
+        alt: "Soft cover",
+        id: "img9",
+        sortOrder: 2,
+        url: placeholderImage
+      }
+    ],
+    name: "Our Awesome Book",
+    thumbnail: { __typename: "Image", url: placeholderImage },
+    variants: [
+      {
+        __typename: "ProductVariant",
+        id: "var1",
+        images: [
+          {
+            __typename: "ProductImage",
+            id: "23123",
+            url: placeholderImage
+          }
+        ],
+        name: "Extended Hard",
+        sku: "13-1337"
+      },
+      {
+        __typename: "ProductVariant",
+        id: "var2",
+        images: [
+          {
+            __typename: "ProductImage",
+            id: "23123",
+            url: placeholderImage
+          }
+        ],
+        name: "Extended Soft",
+        sku: "13-1338"
+      },
+      {
+        __typename: "ProductVariant",
+        id: "var3",
+        images: [
+          {
+            __typename: "ProductImage",
+            id: "23123",
+            url: placeholderImage
+          }
+        ],
+        name: "Normal Hard",
+        sku: "13-1339"
+      },
+      {
+        __typename: "ProductVariant",
+        id: "var4",
+        images: [
+          {
+            __typename: "ProductImage",
+            id: "23123",
+            url: placeholderImage
+          }
+        ],
+        name: "Normal Soft",
+        sku: "13-1340"
       }
     ]
   },
-  name: "Extended Hard",
-  priceOverride: {
-    amount: 100,
-    currency: "USD",
-    localized: "100 USD"
-  },
-  product: {
-    id: "prod1",
-    images: {
-      edges: [
-        {
-          node: {
-            alt: "Front",
-            id: "img1",
-            sortOrder: 1,
-            url: placeholderImage
-          }
-        },
-        {
-          node: {
-            alt: "Back",
-            id: "img2",
-            sortOrder: 4,
-            url: placeholderImage
-          }
-        },
-        {
-          node: {
-            alt: "Right side",
-            id: "img3",
-            sortOrder: 2,
-            url: placeholderImage
-          }
-        },
-        {
-          node: {
-            alt: "Left side",
-            id: "img4",
-            sortOrder: 3,
-            url: placeholderImage
-          }
-        },
-        {
-          node: {
-            alt: "Paper",
-            id: "img5",
-            sortOrder: 0,
-            url: placeholderImage
-          }
-        },
-        {
-          node: {
-            alt: "Hard cover",
-            id: "img6",
-            sortOrder: 1,
-            url: placeholderImage
-          }
-        },
-        {
-          node: {
-            alt: "Extended version",
-            id: "img7",
-            sortOrder: 0,
-            url: placeholderImage
-          }
-        },
-        {
-          node: {
-            alt: "Cut version",
-            id: "img8",
-            sortOrder: 2,
-            url: placeholderImage
-          }
-        },
-        {
-          node: {
-            alt: "Soft cover",
-            id: "img9",
-            sortOrder: 2,
-            url: placeholderImage
-          }
-        }
-      ]
-    },
-    name: "Our Awesome Book",
-    thumbnailUrl: placeholderImage,
-    variants: {
-      edges: [
-        {
-          node: {
-            id: "var1",
-            name: "Extended Hard",
-            sku: "13-1337"
-          }
-        },
-        {
-          node: {
-            id: "var2",
-            name: "Extended Soft",
-            sku: "13-1338"
-          }
-        },
-        {
-          node: {
-            id: "var3",
-            name: "Normal Hard",
-            sku: "13-1339"
-          }
-        },
-        {
-          node: {
-            id: "var4",
-            name: "Normal Soft",
-            sku: "13-1340"
-          }
-        }
-      ],
-      totalCount: 11
-    }
-  },
   quantity: 19,
   quantityAllocated: 12,
-  sku: "1230959124123",
-  stock: 49,
-  stockAllocated: 12,
-  stockQuantity: 1
+  sku: "1230959124123"
 });
 export const variantImages = (placeholderImage: string) =>
-  variant(placeholderImage).images.edges.map(edge => edge.node);
+  variant(placeholderImage).images;
 export const variantProductImages = (placeholderImage: string) =>
-  variant(placeholderImage).product.images.edges.map(edge => edge.node);
+  variant(placeholderImage).product.images;
 export const variantSiblings = (placeholderImage: string) =>
-  variant(placeholderImage).product.variants.edges.map(edge => edge.node);
+  variant(placeholderImage).product.variants;

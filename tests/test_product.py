@@ -5,16 +5,17 @@ from decimal import Decimal
 from unittest.mock import patch
 
 import pytest
-
-from django.conf import settings
 from django.core import serializers
 from django.core.serializers.base import DeserializationError
 from django.urls import reverse
 from prices import Money, TaxedMoney, TaxedMoneyRange
+
 from saleor.checkout import utils
 from saleor.checkout.models import Cart
 from saleor.checkout.utils import add_variant_to_cart
+from saleor.dashboard.menu.utils import update_menu
 from saleor.discount.models import Sale
+from saleor.menu.models import MenuItemTranslation
 from saleor.product import ProductAvailabilityStatus, models
 from saleor.product.thumbnails import create_product_thumbnails
 from saleor.product.utils import (
@@ -22,8 +23,6 @@ from saleor.product.utils import (
 from saleor.product.utils.attributes import get_product_attributes_data
 from saleor.product.utils.availability import get_product_availability_status
 from saleor.product.utils.variants_picker import get_variant_picker_data
-from saleor.menu.models import MenuItemTranslation
-from saleor.dashboard.menu.utils import update_menu
 
 from .utils import filter_products_by_attribute
 
@@ -59,7 +58,7 @@ def test_product_page_redirects_to_correct_slug(client, product):
 
 
 def test_product_preview(admin_client, client, product):
-    product.available_on = (
+    product.publication_date = (
         datetime.date.today() + datetime.timedelta(days=7))
     product.save()
     response = client.get(product.get_absolute_url())
@@ -68,7 +67,7 @@ def test_product_preview(admin_client, client, product):
     assert response.status_code == 200
 
 
-def test_filtering_by_attribute(db, color_attribute, category):
+def test_filtering_by_attribute(db, color_attribute, category, settings):
     product_type_a = models.ProductType.objects.create(
         name='New class', has_variants=True)
     product_type_a.product_attributes.add(color_attribute)
@@ -616,7 +615,7 @@ def test_product_json_deserialization(category, product_type):
             "description": "Future almost cup national",
             "category": {category_pk},
             "price": {{"_type": "Money", "amount": "35.98", "currency": "USD"}},
-            "available_on": null,
+            "publication_date": null,
             "is_published": true,
             "attributes": "{{\\"9\\": \\"24\\", \\"10\\": \\"26\\"}}",
             "updated_at": "2018-07-19T13:30:24.195Z",
@@ -663,7 +662,7 @@ def test_json_no_currency_deserialization(category, product_type):
             "description": "Future almost cup national",
             "category": {category_pk},
             "price": {{"_type": "Money", "amount": "35.98"}},
-            "available_on": null,
+            "publication_date": null,
             "is_published": true,
             "attributes": "{{\\"9\\": \\"24\\", \\"10\\": \\"26\\"}}",
             "updated_at": "2018-07-19T13:30:24.195Z",

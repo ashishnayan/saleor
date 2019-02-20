@@ -1,9 +1,10 @@
-import { withStyles } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
+import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
+import Grid from "../../../components/Grid";
 import PageHeader from "../../../components/PageHeader";
 import SaveButtonBar from "../../../components/SaveButtonBar";
 import i18n from "../../../i18n";
@@ -26,78 +27,70 @@ export interface SiteSettingsPageProps {
     message: string;
   }>;
   shop: SiteSettings_shop;
+  saveButtonBarState: ConfirmButtonTransitionState;
   onBack: () => void;
   onKeyAdd: () => void;
   onKeyRemove: (keyType: AuthorizationKeyType) => void;
   onSubmit: (data: SiteSettingsPageFormData) => void;
 }
 
-const decorate = withStyles(theme => ({
-  root: {
-    display: "grid" as "grid",
-    gridColumnGap: theme.spacing.unit * 2 + "px",
-    gridRowGap: theme.spacing.unit * 3 + "px",
-    gridTemplateColumns: "4fr 9fr"
-  }
-}));
-const SiteSettingsPage = decorate<SiteSettingsPageProps>(
-  ({
-    classes,
-    disabled,
-    errors,
-    shop,
-    onBack,
-    onKeyAdd,
-    onKeyRemove,
-    onSubmit
-  }) => {
-    const initialForm: SiteSettingsPageFormData = {
-      description: maybe(() => shop.description, ""),
-      domain: maybe(() => shop.domain.host, ""),
-      name: maybe(() => shop.name, "")
-    };
-    return (
-      <Form
-        errors={errors}
-        initial={initialForm}
-        onSubmit={onSubmit}
-        key={JSON.stringify(shop)}
-      >
-        {({ change, data, errors: formErrors, hasChanged, submit }) => (
-          <Container width="md">
-            <PageHeader
-              title={i18n.t("General Information", {
-                context: "page header"
-              })}
+const SiteSettingsPage: React.StatelessComponent<SiteSettingsPageProps> = ({
+  disabled,
+  errors,
+  saveButtonBarState,
+  shop,
+  onBack,
+  onKeyAdd,
+  onKeyRemove,
+  onSubmit
+}) => {
+  const initialForm: SiteSettingsPageFormData = {
+    description: maybe(() => shop.description, ""),
+    domain: maybe(() => shop.domain.host, ""),
+    name: maybe(() => shop.name, "")
+  };
+  return (
+    <Form
+      errors={errors}
+      initial={initialForm}
+      onSubmit={onSubmit}
+      confirmLeave
+    >
+      {({ change, data, errors: formErrors, hasChanged, submit }) => (
+        <Container width="md">
+          <PageHeader
+            title={i18n.t("General Information", {
+              context: "page header"
+            })}
+          />
+          <Grid variant="inverted">
+            <Typography variant="title">{i18n.t("Site Settings")}</Typography>
+            <SiteSettingsDetails
+              data={data}
+              errors={formErrors}
+              disabled={disabled}
+              onChange={change}
             />
-            <div className={classes.root}>
-              <Typography variant="title">{i18n.t("Site Settings")}</Typography>
-              <SiteSettingsDetails
-                data={data}
-                errors={formErrors}
-                disabled={disabled}
-                onChange={change}
-              />
-              <Typography variant="title">
-                {i18n.t("Authentication keys")}
-              </Typography>
-              <SiteSettingsKeys
-                disabled={disabled}
-                keys={maybe(() => shop.authorizationKeys)}
-                onAdd={onKeyAdd}
-                onRemove={onKeyRemove}
-              />
-            </div>
-            <SaveButtonBar
-              disabled={disabled || !hasChanged}
-              onCancel={onBack}
-              onSave={submit}
+            <Typography variant="title">
+              {i18n.t("Authentication keys")}
+            </Typography>
+            <SiteSettingsKeys
+              disabled={disabled}
+              keys={maybe(() => shop.authorizationKeys)}
+              onAdd={onKeyAdd}
+              onRemove={onKeyRemove}
             />
-          </Container>
-        )}
-      </Form>
-    );
-  }
-);
+          </Grid>
+          <SaveButtonBar
+            state={saveButtonBarState}
+            disabled={disabled || !hasChanged}
+            onCancel={onBack}
+            onSave={submit}
+          />
+        </Container>
+      )}
+    </Form>
+  );
+};
 SiteSettingsPage.displayName = "SiteSettingsPage";
 export default SiteSettingsPage;

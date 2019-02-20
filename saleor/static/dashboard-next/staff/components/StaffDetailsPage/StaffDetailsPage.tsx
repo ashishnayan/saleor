@@ -1,15 +1,14 @@
-import DialogContentText from "@material-ui/core/DialogContentText";
-import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
-import ActionDialog from "../../../components/ActionDialog";
+import CardSpacer from "../../../components/CardSpacer";
+import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
+import Grid from "../../../components/Grid";
 import PageHeader from "../../../components/PageHeader";
 import SaveButtonBar from "../../../components/SaveButtonBar";
-import Toggle from "../../../components/Toggle";
-import i18n from "../../../i18n";
-import { maybe } from "../../../misc";
+import { getUserName, maybe } from "../../../misc";
+import { PermissionEnum } from "../../../types/globalTypes";
 import {
   StaffMemberDetails_shop_permissions,
   StaffMemberDetails_user
@@ -21,121 +20,84 @@ import StaffStatus from "../StaffStatus/StaffStatus";
 interface FormData {
   hasFullAccess: boolean;
   isActive: boolean;
-  permissions: string[];
+  permissions: PermissionEnum[];
+  firstName: string;
+  lastName: string;
+  email: string;
 }
 
 export interface StaffDetailsPageProps {
   disabled: boolean;
   permissions: StaffMemberDetails_shop_permissions[];
+  saveButtonBarState: ConfirmButtonTransitionState;
   staffMember: StaffMemberDetails_user;
   onBack: () => void;
   onDelete: () => void;
   onSubmit: (data: FormData) => void;
 }
 
-const decorate = withStyles(theme => ({
-  card: {
-    marginBottom: theme.spacing.unit * 2 + "px"
-  },
-  root: {
-    display: "grid" as "grid",
-    gridColumnGap: theme.spacing.unit * 2 + "px",
-    gridTemplateColumns: "9fr 4fr"
-  }
-}));
-const StaffDetailsPage = decorate<StaffDetailsPageProps>(
-  ({
-    classes,
-    disabled,
-    permissions,
-    staffMember,
-    onBack,
-    onDelete,
-    onSubmit
-  }) => {
-    const initialForm: FormData = {
-      hasFullAccess: maybe(
-        () =>
-          permissions.filter(
-            perm =>
-              maybe(() => staffMember.permissions, []).filter(
-                userPerm => userPerm.code === perm.code
-              ).length === 0
-          ).length === 0,
-        false
-      ),
-      isActive: maybe(() => staffMember.isActive, false),
-      permissions: maybe(() => staffMember.permissions, []).map(
-        perm => perm.code
-      )
-    };
-    return (
-      <Toggle>
-        {(openedDeleteDialog, { toggle: toggleDeleteDialog }) => (
-          <>
-            <Form
-              initial={initialForm}
-              onSubmit={onSubmit}
-              key={JSON.stringify({ staffMember, permissions })}
-            >
-              {({ data, change, submit }) => (
-                <Container width="md">
-                  <PageHeader
-                    title={maybe(() => staffMember.email)}
-                    onBack={onBack}
-                  />
-                  <div className={classes.root}>
-                    <div>
-                      <StaffProperties
-                        className={classes.card}
-                        staffMember={staffMember}
-                      />
-                    </div>
-                    <div>
-                      <div className={classes.card}>
-                        <StaffPermissions
-                          data={data}
-                          disabled={disabled}
-                          permissions={permissions}
-                          onChange={change}
-                        />
-                      </div>
-                      <StaffStatus
-                        data={data}
-                        disabled={disabled}
-                        onChange={change}
-                      />
-                    </div>
-                  </div>
-                  <SaveButtonBar
-                    onCancel={onBack}
-                    onSave={submit}
-                    onDelete={toggleDeleteDialog}
-                  />
-                </Container>
-              )}
-            </Form>
-            <ActionDialog
-              open={openedDeleteDialog}
-              title={i18n.t("Remove staff user")}
-              variant="delete"
-              onClose={toggleDeleteDialog}
-              onConfirm={onDelete}
-            >
-              <DialogContentText
-                dangerouslySetInnerHTML={{
-                  __html: i18n.t(
-                    "Are you sure you want to remove <strong>{{ email }}</strong> from staff members?",
-                    { email: maybe(() => staffMember.email) }
-                  )
-                }}
+const StaffDetailsPage: React.StatelessComponent<StaffDetailsPageProps> = ({
+  disabled,
+  permissions,
+  saveButtonBarState,
+  staffMember,
+  onBack,
+  onDelete,
+  onSubmit
+}: StaffDetailsPageProps) => {
+  const initialForm: FormData = {
+    email: maybe(() => staffMember.email),
+    firstName: maybe(() => staffMember.firstName),
+    hasFullAccess: maybe(
+      () =>
+        permissions.filter(
+          perm =>
+            maybe(() => staffMember.permissions, []).filter(
+              userPerm => userPerm.code === perm.code
+            ).length === 0
+        ).length === 0,
+      false
+    ),
+    isActive: maybe(() => staffMember.isActive, false),
+    lastName: maybe(() => staffMember.lastName),
+    permissions: maybe(() => staffMember.permissions, []).map(perm => perm.code)
+  };
+  return (
+    <Form initial={initialForm} onSubmit={onSubmit} confirmLeave>
+      {({ data, change, hasChanged, submit }) => (
+        <Container width="md">
+          <PageHeader title={getUserName(staffMember)} onBack={onBack} />
+          <Grid>
+            <div>
+              <StaffProperties
+                data={data}
+                disabled={disabled}
+                staffMember={staffMember}
+                onChange={change}
               />
-            </ActionDialog>
-          </>
-        )}
-      </Toggle>
-    );
-  }
-);
+            </div>
+            <div>
+              <StaffPermissions
+                data={data}
+                disabled={disabled}
+                permissions={permissions}
+                onChange={change}
+              />
+              <CardSpacer />
+              <StaffStatus data={data} disabled={disabled} onChange={change} />
+            </div>
+          </Grid>
+          <SaveButtonBar
+            disabled={disabled || !hasChanged}
+            state={saveButtonBarState}
+            onCancel={onBack}
+            onSave={submit}
+            onDelete={onDelete}
+          />
+        </Container>
+      )}
+    </Form>
+  );
+};
 StaffDetailsPage.displayName = "StaffDetailsPage";
 export default StaffDetailsPage;

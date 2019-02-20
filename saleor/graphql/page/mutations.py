@@ -1,4 +1,7 @@
+from textwrap import dedent
+
 import graphene
+from django.utils.text import slugify
 
 from ...page import models
 from ..core.mutations import ModelDeleteMutation, ModelMutation
@@ -10,11 +13,11 @@ class PageInput(graphene.InputObjectType):
     slug = graphene.String(description='Page internal name.')
     title = graphene.String(description='Page title.')
     content = graphene.String(
-        description="""Page content.
-        May consists of ordinary text, HTML and images.""")
-    is_visible = graphene.Boolean(
+        description=dedent("""Page content.
+        May consists of ordinary text, HTML and images."""))
+    is_published = graphene.Boolean(
         description='Determines if page is visible in the storefront')
-    available_on = graphene.String(
+    publication_date = graphene.String(
         description='Publication date. ISO 8601 standard.')
     seo = SeoInput(description='Search engine optimization fields.')
 
@@ -35,6 +38,8 @@ class PageCreate(ModelMutation):
     @classmethod
     def clean_input(cls, info, instance, input, errors):
         cleaned_input = super().clean_input(info, instance, input, errors)
+        if 'slug' not in cleaned_input:
+            cleaned_input['slug'] = slugify(cleaned_input['name'])
         clean_seo_fields(cleaned_input)
         return cleaned_input
 

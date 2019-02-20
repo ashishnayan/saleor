@@ -1,34 +1,37 @@
 import logging
 
-from django.conf import settings
 from django.contrib import auth, messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from django.http import Http404, HttpResponseForbidden
+from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.utils.translation import pgettext_lazy
 from django.views.decorators.csrf import csrf_exempt
-from payments import PaymentStatus, RedirectNeeded
 
 from . import FulfillmentStatus
 from ..account.forms import LoginForm
 from ..account.models import User
 from ..core.utils import get_client_ip
+from ..payment import ChargeStatus, TransactionKind, get_payment_gateway
+from ..payment.utils import (
+    create_payment, create_payment_information, gateway_process_payment)
 from .forms import (
-    CustomerNoteForm, PasswordForm, PaymentDeleteForm, PaymentMethodsForm)
-from .models import Order, Payment
+    CustomerNoteForm, PasswordForm, PaymentDeleteForm, PaymentsForm)
+from .models import Order
 from .utils import attach_order_to_user, check_order_status
 
 logger = logging.getLogger(__name__)
+
+PAYMENT_TEMPLATE = 'order/payment/%s.html'
 
 
 def details(request, token):
     note_form = None
     orders = Order.objects.confirmed().prefetch_related(
         'lines__variant__images', 'lines__variant__product__images',
-        'fulfillments__lines', 'fulfillments__lines__order_line')
+        'fulfillments__lines__order_line')
     orders = orders.select_related(
         'billing_address', 'shipping_address', 'user')
     order = get_object_or_404(orders, token=token)
@@ -54,10 +57,12 @@ def payment(request, token):
     order = get_object_or_404(orders, token=token)
     payments = order.payments.all()
     form_data = request.POST or None
-    try:
-        waiting_payment = order.payments.get(status=PaymentStatus.WAITING)
-    except Payment.DoesNotExist:
-        waiting_payment = None
+
+    waiting_payment = payments.filter(
+        is_active=True,
+        charge_status=ChargeStatus.NOT_CHARGED,
+        transactions__kind=TransactionKind.AUTH).first()
+    if not waiting_payment:
         waiting_payment_form = None
     else:
         form_data = None
@@ -67,12 +72,12 @@ def payment(request, token):
         form_data = None
     payment_form = None
     if not order.is_pre_authorized():
-        payment_form = PaymentMethodsForm(form_data)
-        # FIXME: redirect if there is only one payment method
+        payment_form = PaymentsForm(form_data)
+        # FIXME: redirect if there is only one payment
         if payment_form.is_valid():
-            payment_method = payment_form.cleaned_data['method']
+            payment = payment_form.cleaned_data['gateway']
             return redirect(
-                'order:payment', token=order.token, variant=payment_method)
+                'order:payment', token=order.token, gateway=payment)
     ctx = {
         'order': order, 'payment_form': payment_form, 'payments': payments,
         'waiting_payment': waiting_payment,
@@ -81,58 +86,50 @@ def payment(request, token):
 
 
 @check_order_status
-def start_payment(request, order, variant):
-    waiting_payments = order.payments.filter(
-        status=PaymentStatus.WAITING).exists()
-    if waiting_payments:
-        return redirect('order:payment', token=order.token)
-    billing = order.billing_address
-    total = order.total
-    defaults = {
-        'total': total.gross.amount,
-        'tax': total.tax.amount,
-        'currency': total.currency,
-        'delivery': order.shipping_price.net.amount,
-        'billing_first_name': billing.first_name,
-        'billing_last_name': billing.last_name,
-        'billing_address_1': billing.street_address_1,
-        'billing_address_2': billing.street_address_2,
-        'billing_city': billing.city,
-        'billing_postcode': billing.postal_code,
-        'billing_country_code': billing.country.code,
-        'billing_email': order.user_email,
-        'description': pgettext_lazy(
-            'Payment description', 'Order %(order_number)s') % {
-                'order_number': order},
-        'billing_country_area': billing.country_area,
-        'customer_ip_address': get_client_ip(request)}
-    variant_choices = settings.CHECKOUT_PAYMENT_CHOICES
-    if variant not in [code for code, dummy_name in variant_choices]:
-        raise Http404('%r is not a valid payment variant' % (variant,))
-    if variant == "default":
-        url = reverse('order:checkout-success', kwargs={'token': order.token})
-        return redirect(url)
+def start_payment(request, order, gateway):
+    if gateway == 'cod':
+        return redirect('order:payment-success', token=order.token)
+    payment_gateway, connection_params = get_payment_gateway(gateway)
+    extra_data = {'customer_user_agent': request.META.get('HTTP_USER_AGENT')}
     with transaction.atomic():
-        payment, dummy_created = Payment.objects.get_or_create(
-            variant=variant, status=PaymentStatus.WAITING, order=order,
-            defaults=defaults)
-        try:
-            form = payment.get_form(data=request.POST or None)
-        except RedirectNeeded as redirect_to:
-            return redirect(str(redirect_to))
-        except Exception:
-            logger.exception('Error communicating with the payment gateway')
-            msg = pgettext_lazy(
-                'Payment gateway error',
-                'Oops, it looks like we were unable to contact the selected '
-                'payment service')
-            messages.error(request, msg)
-            payment.change_status(PaymentStatus.ERROR)
-            return redirect('order:payment', token=order.token)
-    template = 'order/payment/%s.html' % variant
-    ctx = {'form': form, 'payment': payment}
-    return TemplateResponse(
-        request, [template, 'order/payment/default.html'], ctx)
+        payment = create_payment(
+            gateway=gateway,
+            currency=order.total.gross.currency,
+            email=order.user_email,
+            billing_address=order.billing_address,
+            customer_ip_address=get_client_ip(request),
+            total=order.total.gross.amount,
+            order=order,
+            extra_data=extra_data)
+
+        if (order.is_fully_paid()
+                or payment.charge_status == ChargeStatus.FULLY_REFUNDED):
+            return redirect(order.get_absolute_url())
+
+        payment_info = create_payment_information(payment)
+        form = payment_gateway.create_form(
+            data=request.POST or None,
+            payment_information=payment_info,
+            connection_params=connection_params)
+        if form.is_valid():
+            try:
+                gateway_process_payment(
+                    payment=payment, payment_token=form.get_payment_token())
+            except Exception as exc:
+                form.add_error(None, str(exc))
+            else:
+                if order.is_fully_paid():
+                    return redirect('order:payment-success', token=order.token)
+                return redirect(order.get_absolute_url())
+
+    client_token = payment_gateway.get_client_token(
+        connection_params=connection_params)
+    ctx = {
+        'form': form,
+        'payment': payment,
+        'client_token': client_token,
+        'order': order}
+    return TemplateResponse(request, payment_gateway.TEMPLATE_PATH, ctx)
 
 
 @check_order_status

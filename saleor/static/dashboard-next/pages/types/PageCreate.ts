@@ -11,8 +11,8 @@ export interface PageCreate_pageCreate_page {
   slug: string;
   title: string;
   content: string;
-  isVisible: boolean;
-  availableOn: any | null;
+  isPublished: boolean;
+  publicationDate: any | null;
   created: any;
 }
 
@@ -25,7 +25,7 @@ export interface PageCreate_pageCreate_errors {
 export interface PageCreate_pageCreate {
   __typename: "PageCreate";
   page: PageCreate_pageCreate_page | null;
-  errors: (PageCreate_pageCreate_errors | null)[] | null;
+  errors: PageCreate_pageCreate_errors[] | null;
 }
 
 export interface PageCreate {
@@ -36,6 +36,6 @@ export interface PageCreateVariables {
   title: string;
   content: string;
   slug: string;
-  isVisible: boolean;
-  availableOn?: string | null;
+  isPublished: boolean;
+  publicationDate?: string | null;
 }
