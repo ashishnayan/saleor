@@ -572,11 +572,12 @@ STRIPE = 'stripe'
 COD = 'cod'
 
 CHECKOUT_PAYMENT_GATEWAYS = {
-    DUMMY: pgettext_lazy('Payment method name', 'Dummy gateway'),
-    COD: ('Payment method name', 'Cash on Delivery'),
+    # DUMMY: pgettext_lazy('Payment method name', 'Dummy gateway'),
+    COD: pgettext_lazy('Payment method name', 'Cash on Delivery'),
 }
 
 PAYMENT_GATEWAYS = {
+    COD: {},
     DUMMY: {
         'module': 'saleor.payment.gateways.dummy',
         'connection_params': {}},

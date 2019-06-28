@@ -1,0 +1,37 @@
+#!/bin/bash
+
+NAME="saleor"                                  # Name of the application
+DJANGODIR=/app/saleor/saleor             # Django project directory
+SOCKFILE=/app/saleor/run/gunicorn.sock  # we will communicte using this unix socket
+USER=rice                                        # the user to run as
+GROUP=rice                                     # the group to run as
+NUM_WORKERS=3                                     # how many worker processes should Gunicorn spawn
+DJANGO_SETTINGS_MODULE=saleor.settings             # which settings file should Django use
+DJANGO_WSGI_MODULE=saleor.wsgi                     # WSGI module name
+
+echo "Starting $NAME as `whoami`"
+
+# Activate the virtual environment
+cd $DJANGODIR
+source /app/saleor/vevn/bin/activate
+# /bin/bash -c ". /app/saleor/vevn/bin/activate; exec /bin/bash -i"
+export DJANGO_SETTINGS_MODULE=$DJANGO_SETTINGS_MODULE
+export PYTHONPATH=$DJANGODIR:$PYTHONPATH
+
+export SECRET_KEY='w4418xnkrqo_rnpx5-gfr%gv9q9(^0vz8=#_de^+7p8ae0dk9!'
+export DATABASE_URL=postgres://postgres:rice123@localhost:5432/saleor
+export ALLOWED_HOSTS='localhost,127.0.0.1,139.59.17.138'
+
+# Create the run directory if it doesn't exist
+RUNDIR=$(dirname $SOCKFILE)
+test -d $RUNDIR || mkdir -p $RUNDIR
+
+# Start your Django Unicorn
+# Programs meant to be run under supervisor should not daemonize themselves (do not use --daemon)
+exec /app/saleor/vevn/bin/gunicorn ${DJANGO_WSGI_MODULE}:application \
+  --name $NAME \
+  --workers $NUM_WORKERS \
+  --user=$USER --group=$GROUP \
+  --bind=unix:$SOCKFILE \
+  --log-level=debug \
+  --log-file=-

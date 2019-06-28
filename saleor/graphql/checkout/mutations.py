@@ -2,6 +2,7 @@ from datetime import date
 
 import graphene
 from django.db import transaction
+from django.conf import settings
 
 from ...checkout import models
 from ...checkout.utils import (
@@ -187,7 +188,13 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         if variants and quantities:
             for variant, quantity in zip(variants, quantities):
                 add_variant_to_cart(instance, variant, quantity)
-
+        country_code = instance.shipping_address.country.code
+        qs = ShippingMethodModel.objects.applicable_shipping_methods(
+            price=instance.get_subtotal(discounts=info.context.discounts,
+            taxes=get_taxes_for_address(instance.shipping_address)).gross,
+            weight=instance.get_total_weight(), country_code=country_code).first()
+        instance.shipping_method = qs
+        instance.save()
 
 class CheckoutLinesAdd(BaseMutation):
     checkout = graphene.Field(Checkout, description='An updated Checkout.')
@@ -505,6 +512,8 @@ class CheckoutComplete(BaseMutation):
             return CheckoutComplete(errors=errors)
 
         payment = checkout.get_last_active_payment()
+        if payment.gateway == settings.COD:
+            return CheckoutComplete(order=order, errors=errors)
         try:
             gateway_process_payment(
                 payment=payment, payment_token=payment.token)
